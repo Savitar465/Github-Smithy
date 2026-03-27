@@ -1,4 +1,10 @@
 {
   "version": "1.0",
-  "sources": ["models"]
+  "sources": ["models"],
+  "plugins": {
+    "java-client-codegen": {
+      "service": "example.weather#Weather",
+      "namespace": "example.weather.weather"
+    }
+  }
 }
