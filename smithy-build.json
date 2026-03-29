@@ -1,0 +1,14 @@
+{
+  "version": "1.0",
+  "sources": ["model"],
+  "projections": {
+    "openapi": {
+      "plugins": {
+        "openapi": {
+          "service": "com.minigithub#MiniGitHubApi",
+          "protocol": "aws.protocols#restJson1"
+        }
+      }
+    }
+  }
+}

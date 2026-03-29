@@ -1,0 +1,19 @@
+plugins {
+    id "software.amazon.smithy" version "0.6.0"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Smithy core — valida el modelo
+    implementation "software.amazon.smithy:smithy-model:1.47.0"
+
+    // Traits de autenticación y AWS (Bearer, restJson1, etc.)
+    implementation "software.amazon.smithy:smithy-aws-traits:1.47.0"
+
+    // Generación de OpenAPI / Swagger desde el modelo
+    implementation "software.amazon.smithy:smithy-openapi:1.47.0"
+    implementation "software.amazon.smithy:smithy-aws-apigateway-openapi:1.47.0"
+}
