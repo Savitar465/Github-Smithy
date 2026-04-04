@@ -2,10 +2,18 @@
   "version": "1.0",
   "sources": ["model"],
   "projections": {
-    "openapi": {
+    "openapi-auth-public": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub#MiniGitHubApi",
+          "service": "com.minigithub.auth#AuthPublicApi",
+          "protocol": "aws.protocols#restJson1"
+        }
+      }
+    },
+    "openapi-auth-account": {
+      "plugins": {
+        "openapi": {
+          "service": "com.minigithub.auth#AuthAccountApi",
           "protocol": "aws.protocols#restJson1"
         }
       }

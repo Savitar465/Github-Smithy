@@ -6,6 +6,10 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    openapiGenerator
+}
+
 dependencies {
     // Smithy core — valida el modelo
     implementation "software.amazon.smithy:smithy-model:1.47.0"
@@ -16,4 +20,50 @@ dependencies {
     // Generación de OpenAPI / Swagger desde el modelo
     implementation "software.amazon.smithy:smithy-openapi:1.47.0"
     implementation "software.amazon.smithy:smithy-aws-apigateway-openapi:1.47.0"
+
+    // CLI para generar codigo Java desde OpenAPI
+    openapiGenerator "org.openapitools:openapi-generator-cli:7.5.0"
 }
+
+sourceSets.main.java.srcDirs = ['model', 'src/main/smithy']
+
+def smithyProjectionBase = layout.buildDirectory.dir("smithyprojections/${rootProject.name}").get().asFile.absolutePath
+def authPublicSpec = "${smithyProjectionBase}/openapi-auth-public/openapi/AuthPublicApi.openapi.json"
+def authAccountSpec = "${smithyProjectionBase}/openapi-auth-account/openapi/AuthAccountApi.openapi.json"
+
+tasks.register("generateAuthJavaClient", JavaExec) {
+    dependsOn tasks.named("smithyBuildJar")
+    group = "code generation"
+    description = "Genera cliente Java desde AuthPublicApi OpenAPI"
+    classpath = configurations.openapiGenerator
+    mainClass = "org.openapitools.codegen.OpenAPIGenerator"
+    args "generate", "-g", "java",
+        "-i", authPublicSpec,
+        "-o", layout.buildDirectory.dir("generated/openapi/auth-java-client").get().asFile.absolutePath,
+        "--api-package", "com.minigithub.generated.auth.client.api",
+        "--model-package", "com.minigithub.generated.auth.client.model",
+        "--invoker-package", "com.minigithub.generated.auth.client.invoker",
+        "--additional-properties", "dateLibrary=java8,library=webclient,useJakartaEe=true,hideGenerationTimestamp=true"
+}
+
+tasks.register("generateAuthJavaServer", JavaExec) {
+    dependsOn tasks.named("smithyBuildJar")
+    group = "code generation"
+    description = "Genera stubs Spring Java desde AuthAccountApi OpenAPI"
+    classpath = configurations.openapiGenerator
+    mainClass = "org.openapitools.codegen.OpenAPIGenerator"
+    args "generate", "-g", "spring",
+        "-i", authAccountSpec,
+        "-o", layout.buildDirectory.dir("generated/openapi/auth-java-server").get().asFile.absolutePath,
+        "--api-package", "com.minigithub.generated.auth.server.api",
+        "--model-package", "com.minigithub.generated.auth.server.model",
+        "--invoker-package", "com.minigithub.generated.auth.server.invoker",
+        "--additional-properties", "interfaceOnly=true,useSpringBoot3=true,useJakartaEe=true,dateLibrary=java8,hideGenerationTimestamp=true"
+}
+
+tasks.register("generateAuthJava") {
+    group = "code generation"
+    description = "Genera cliente y server Java para Auth"
+    dependsOn tasks.named("generateAuthJavaClient"), tasks.named("generateAuthJavaServer")
+}
+
