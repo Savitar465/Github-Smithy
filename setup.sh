@@ -3,7 +3,7 @@
 # setup.sh — Genera el Gradle Wrapper dentro del proyecto
 # Ejecutar UNA SOLA VEZ después de descomprimir el ZIP
 #
-# Requisitos: Java 11+ y conexión a internet
+# Requisitos: Java 17+ y conexión a internet
 # Uso:        cd mini-github-smithy && bash setup.sh
 # ─────────────────────────────────────────────────────────────
 
@@ -16,7 +16,7 @@ echo ""
 
 # 1. Verificar Java
 if ! command -v java &> /dev/null; then
-    echo "❌ Java no encontrado. Instala Java 11+ y vuelve a ejecutar."
+    echo "❌ Java no encontrado. Instala Java 17+ y vuelve a ejecutar."
     exit 1
 fi
 JAVA_VER=$(java -version 2>&1 | head -1)
@@ -30,8 +30,8 @@ fi
 
 # 3. Descargar Gradle si no está disponible
 if ! command -v gradle &> /dev/null; then
-    echo "⬇️  Gradle no encontrado, descargando versión 8.5..."
-    GRADLE_VERSION="8.5"
+    echo "⬇️  Gradle no encontrado, descargando versión 8.10.2..."
+    GRADLE_VERSION="8.10.2"
     GRADLE_URL="https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip"
     GRADLE_ZIP="/tmp/gradle-${GRADLE_VERSION}.zip"
     GRADLE_DIR="/tmp/gradle-${GRADLE_VERSION}"
@@ -45,7 +45,7 @@ fi
 
 # 4. Generar el Gradle Wrapper
 echo "⚙️  Generando Gradle Wrapper..."
-$GRADLE_CMD wrapper --gradle-version 8.5
+$GRADLE_CMD wrapper --gradle-version 8.10.2
 
 echo ""
 echo "✅ Wrapper generado. Archivos creados:"
