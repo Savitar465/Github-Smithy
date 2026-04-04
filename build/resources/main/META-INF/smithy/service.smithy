@@ -21,19 +21,30 @@ use com.minigithub.repo#CreateRepository
 use com.minigithub.repo#GetRepository
 use com.minigithub.repo#UpdateRepository
 use com.minigithub.repo#DeleteRepository
-use com.minigithub.repo#GetRepoContents
-use com.minigithub.repo#UploadFile
-use com.minigithub.repo#DeleteFile
 use com.minigithub.repo#DownloadArchive
 use com.minigithub.repo#ListBranches
 use com.minigithub.repo#CreateBranch
 use com.minigithub.repo#DeleteBranch
+use com.minigithub.repo#GetBranch
+use com.minigithub.repo#ForkRepository
+use com.minigithub.repo#ListForks
 use com.minigithub.repo#StarRepository
 use com.minigithub.repo#UnstarRepository
 use com.minigithub.repo#ListCollaborators
 use com.minigithub.repo#AddCollaborator
 use com.minigithub.repo#UpdateCollaboratorRole
 use com.minigithub.repo#RemoveCollaborator
+
+use com.minigithub.files#GetFileContent
+use com.minigithub.files#CreateFile
+use com.minigithub.files#UpdateFile
+use com.minigithub.files#DeleteFile
+use com.minigithub.files#CreateFolder
+use com.minigithub.files#GetRawFile
+use com.minigithub.files#ListCommits
+use com.minigithub.files#GetCommit
+use com.minigithub.files#GetCommitDiff
+use com.minigithub.files#CompareCommits
 
 use com.minigithub.issue#ListIssues
 use com.minigithub.issue#CreateIssue
@@ -79,19 +90,31 @@ service MiniGitHubApi {
         GetRepository
         UpdateRepository
         DeleteRepository
-        GetRepoContents
-        UploadFile
-        DeleteFile
         DownloadArchive
         ListBranches
         CreateBranch
         DeleteBranch
+        GetBranch
+        ForkRepository
+        ListForks
         StarRepository
         UnstarRepository
         ListCollaborators
         AddCollaborator
         UpdateCollaboratorRole
         RemoveCollaborator
+
+        // Files Service — puerto 3002 (parte del repo service)
+        GetFileContent
+        CreateFile
+        UpdateFile
+        DeleteFile
+        CreateFolder
+        GetRawFile
+        ListCommits
+        GetCommit
+        GetCommitDiff
+        CompareCommits
 
         // Issue Service — puerto 3003
         ListIssues

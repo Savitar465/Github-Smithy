@@ -15,6 +15,8 @@ use com.minigithub.common#ForbiddenError
 use com.minigithub.common#NotFoundError
 use com.minigithub.common#ConflictError
 use com.minigithub.common#InternalServerError
+use com.minigithub.common#Email
+use com.minigithub.files#CommitSignature
 
 // ─── Estructuras de Repositorio ───────────────────────────────
 
@@ -248,174 +250,9 @@ structure DeleteRepositoryInput {
     repo: RepoName
 }
 
-// ─── Archivos: listar contenidos ──────────────────────────────
-
-structure FileEntryDTO {
-    @required
-    name: String
-
-    @required
-    path: String
-
-    @required
-    type: FileType
-
-    size: Long
-
-    contentType: String
-
-    downloadUrl: Url
-
-    @required
-    branch: String
-
-    @required
-    updatedAt: String
-}
-
-enum FileType {
-    FILE      = "file"
-    DIRECTORY = "directory"
-}
-
-list FileEntryList {
-    member: FileEntryDTO
-}
-
-@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 200)
-@readonly
-@documentation("Lista archivos y carpetas de una ruta del repositorio. RF03.3")
-operation GetRepoContents {
-    input: GetRepoContentsInput
-    output: GetRepoContentsOutput
-    errors: [
-        UnauthorizedError
-        ForbiddenError
-        NotFoundError
-        InternalServerError
-    ]
-}
-
-structure GetRepoContentsInput {
-    @required
-    @httpLabel
-    owner: Username
-
-    @required
-    @httpLabel
-    repo: RepoName
-
-    @required
-    @httpLabel
-    filePath: String
-
-    @httpQuery("ref")
-    ref: String
-}
-
-structure GetRepoContentsOutput {
-    @required
-    @httpPayload
-    body: GetRepoContentsBody
-}
-
-structure GetRepoContentsBody {
-    @required
-    contents: FileEntryList
-}
-
-// ─── Archivos: subir ─────────────────────────────────────────
-
-@http(method: "PUT", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 201)
-@idempotent
-@documentation("Sube o actualiza un archivo en el repositorio. RF03.1")
-operation UploadFile {
-    input: UploadFileInput
-    output: UploadFileOutput
-    errors: [
-        BadRequestError
-        UnauthorizedError
-        ForbiddenError
-        NotFoundError
-        InternalServerError
-    ]
-}
-
-structure UploadFileInput {
-    @required
-    @httpLabel
-    owner: Username
-
-    @required
-    @httpLabel
-    repo: RepoName
-
-    @required
-    @httpLabel
-    filePath: String
-
-    @required
-    @httpPayload
-    body: UploadFileBody
-}
-
-structure UploadFileBody {
-    @required
-    content: String
-
-    @required
-    @length(min: 1, max: 500)
-    message: String
-
-    branch: String
-}
-
-structure UploadFileOutput {
-    @required
-    @httpPayload
-    body: FileEntryDTO
-}
-
-// ─── Archivos: eliminar ───────────────────────────────────────
-
-@http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 204)
-@idempotent
-@documentation("Elimina un archivo generando un commit de borrado. RF03.5")
-operation DeleteFile {
-    input: DeleteFileInput
-    output: Unit
-    errors: [
-        BadRequestError
-        UnauthorizedError
-        ForbiddenError
-        NotFoundError
-        InternalServerError
-    ]
-}
-
-structure DeleteFileInput {
-    @required
-    @httpLabel
-    owner: Username
-
-    @required
-    @httpLabel
-    repo: RepoName
-
-    @required
-    @httpLabel
-    filePath: String
-
-    @required
-    @httpQuery("message")
-    @length(min: 1, max: 500)
-    message: String
-
-    @httpQuery("branch")
-    branch: String
-}
-
 // ─── Archivos: descargar ZIP ──────────────────────────────────
+// NOTA: Las operaciones de archivos (GetFileContent, CreateFile, UpdateFile,
+// DeleteFile, CreateFolder, GetRawFile) se movieron a files.smithy
 
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/archive", code: 200)
 @readonly
@@ -577,6 +414,188 @@ structure DeleteBranchInput {
     @required
     @httpLabel
     branch: String
+}
+
+// ─── HU-19: Obtener branch específico ─────────────────────────
+
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/branches/{branch}", code: 200)
+@readonly
+@documentation("Obtiene el detalle de una rama específica. RF02.5")
+operation GetBranch {
+    input: GetBranchInput
+    output: GetBranchOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure GetBranchInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @required
+    @httpLabel
+    branch: String
+}
+
+structure GetBranchOutput {
+    @required
+    @httpPayload
+    body: BranchDetailDTO
+}
+
+/// Branch con detalle de commit
+structure BranchDetailDTO {
+    @required
+    name: String
+
+    @required
+    isDefault: Boolean
+
+    @required
+    commit: BranchCommitDTO
+
+    protected: Boolean
+}
+
+/// Commit asociado a una branch
+structure BranchCommitDTO {
+    @required
+    sha: String
+
+    @required
+    message: String
+
+    @required
+    author: CommitSignature
+
+    @required
+    committer: CommitSignature
+
+    htmlUrl: Url
+}
+
+// ─── HU-09: Fork de repositorio ───────────────────────────────
+
+/// Resumen de repositorio (para parent en forks)
+structure RepositorySummaryDTO {
+    @required
+    id: Uuid
+
+    @required
+    name: RepoName
+
+    @required
+    fullName: String
+
+    @required
+    ownerUsername: Username
+}
+
+/// Información de un fork
+structure ForkInfoDTO {
+    @required
+    repository: RepositoryDTO
+
+    @required
+    parent: RepositorySummaryDTO
+}
+
+list ForkList {
+    member: ForkInfoDTO
+}
+
+@http(method: "POST", uri: "/v1/repos/{owner}/{repo}/forks", code: 201)
+@documentation("Crea un fork del repositorio. RF02.6")
+operation ForkRepository {
+    input: ForkRepositoryInput
+    output: ForkRepositoryOutput
+    errors: [
+        BadRequestError
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        ConflictError
+        InternalServerError
+    ]
+}
+
+structure ForkRepositoryInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @httpPayload
+    body: CreateForkBody
+}
+
+structure CreateForkBody {
+    /// Nombre del fork (opcional, default: mismo nombre)
+    name: RepoName
+}
+
+structure ForkRepositoryOutput {
+    @required
+    @httpPayload
+    body: RepositoryDTO
+}
+
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/forks", code: 200)
+@readonly
+@documentation("Lista los forks de un repositorio. HU-09")
+operation ListForks {
+    input: ListForksInput
+    output: ListForksOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure ListForksInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @httpQuery("page")
+    @range(min: 1)
+    page: Integer
+
+    @httpQuery("perPage")
+    @range(min: 1, max: 100)
+    perPage: Integer
+}
+
+structure ListForksOutput {
+    @required
+    @httpPayload
+    body: ListForksBody
+}
+
+structure ListForksBody {
+    @required
+    forks: ForkList
+
+    @required
+    pagination: PaginationMeta
 }
 
 // ─── HU-23: Stars ─────────────────────────────────────────────

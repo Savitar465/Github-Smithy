@@ -1216,6 +1216,94 @@
                         }
                     }
                 }
+            },
+            "get": {
+                "description": "Obtiene el detalle de una rama específica. RF02.5",
+                "operationId": "GetBranch",
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "branch",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetBranch 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BranchDetailDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "/v1/repos/{owner}/{repo}/collaborators": {
@@ -1607,6 +1695,413 @@
                 }
             }
         },
+        "/v1/repos/{owner}/{repo}/commits": {
+            "get": {
+                "description": "Lista el historial de commits del repositorio. HU-18",
+                "operationId": "ListCommits",
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "sha",
+                        "in": "query",
+                        "description": "Branch o SHA desde donde empezar",
+                        "schema": {
+                            "type": "string",
+                            "description": "Branch o SHA desde donde empezar"
+                        }
+                    },
+                    {
+                        "name": "path",
+                        "in": "query",
+                        "description": "Filtrar por path de archivo",
+                        "schema": {
+                            "type": "string",
+                            "description": "Filtrar por path de archivo"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "perPage",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ListCommits 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListCommitsBody"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/repos/{owner}/{repo}/commits/{sha}": {
+            "get": {
+                "description": "Obtiene el detalle de un commit específico. HU-18",
+                "operationId": "GetCommit",
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "sha",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetCommit 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetCommitBody"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/repos/{owner}/{repo}/commits/{sha}/diff": {
+            "get": {
+                "description": "Obtiene el diff de un commit en formato texto. HU-18",
+                "operationId": "GetCommitDiff",
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "sha",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetCommitDiff 200 response",
+                        "headers": {
+                            "Content-Type": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        },
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetCommitDiffOutputPayload"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/repos/{owner}/{repo}/compare/{baseBranch}/{headBranch}": {
+            "get": {
+                "description": "Compara dos branches mostrando commits y archivos cambiados. HU-20",
+                "operationId": "CompareCommits",
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "baseBranch",
+                        "in": "path",
+                        "description": "Branch base para comparación",
+                        "schema": {
+                            "type": "string",
+                            "description": "Branch base para comparación"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "headBranch",
+                        "in": "path",
+                        "description": "Branch head para comparación",
+                        "schema": {
+                            "type": "string",
+                            "description": "Branch head para comparación"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "CompareCommits 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CompareDTO"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/repos/{owner}/{repo}/contents/{filePath}": {
             "delete": {
                 "description": "Elimina un archivo generando un commit de borrado. RF03.5",
@@ -1643,26 +2138,47 @@
                         "required": true
                     },
                     {
+                        "name": "sha",
+                        "in": "query",
+                        "description": "SHA del archivo a eliminar (para control de concurrencia)",
+                        "schema": {
+                            "type": "string",
+                            "description": "SHA del archivo a eliminar (para control de concurrencia)"
+                        },
+                        "required": true
+                    },
+                    {
                         "name": "message",
                         "in": "query",
+                        "description": "Mensaje del commit",
                         "schema": {
                             "type": "string",
                             "maxLength": 500,
-                            "minLength": 1
+                            "minLength": 1,
+                            "description": "Mensaje del commit"
                         },
                         "required": true
                     },
                     {
                         "name": "branch",
                         "in": "query",
+                        "description": "Branch donde eliminar",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "Branch donde eliminar"
                         }
                     }
                 ],
                 "responses": {
-                    "204": {
-                        "description": "DeleteFile 204 response"
+                    "200": {
+                        "description": "DeleteFile 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DeleteFileResponseBody"
+                                }
+                            }
+                        }
                     },
                     "400": {
                         "description": "BadRequestError 400 response",
@@ -1717,8 +2233,8 @@
                 }
             },
             "get": {
-                "description": "Lista archivos y carpetas de una ruta del repositorio. RF03.3",
-                "operationId": "GetRepoContents",
+                "description": "Obtiene el contenido de un archivo o lista el contenido de un directorio. RF03.3",
+                "operationId": "GetFileContent",
                 "parameters": [
                     {
                         "name": "owner",
@@ -1753,18 +2269,20 @@
                     {
                         "name": "ref",
                         "in": "query",
+                        "description": "Branch, tag o commit SHA",
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "Branch, tag o commit SHA"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "GetRepoContents 200 response",
+                        "description": "GetFileContent 200 response",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/GetRepoContentsBody"
+                                    "$ref": "#/components/schemas/GetFileContentBody"
                                 }
                             }
                         }
@@ -1811,14 +2329,14 @@
                     }
                 }
             },
-            "put": {
-                "description": "Sube o actualiza un archivo en el repositorio. RF03.1",
-                "operationId": "UploadFile",
+            "post": {
+                "description": "Crea un archivo nuevo en el repositorio. RF03.1",
+                "operationId": "CreateFile",
                 "requestBody": {
                     "content": {
                         "application/json": {
                             "schema": {
-                                "$ref": "#/components/schemas/UploadFileBody"
+                                "$ref": "#/components/schemas/CreateFileBody"
                             }
                         }
                     },
@@ -1858,11 +2376,11 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "UploadFile 201 response",
+                        "description": "CreateFile 201 response",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/FileEntryDTO"
+                                    "$ref": "#/components/schemas/FileOperationResponse"
                                 }
                             }
                         }
@@ -1903,6 +2421,454 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "ConflictError 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConflictErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Actualiza un archivo existente en el repositorio. RF03.1",
+                "operationId": "UpdateFile",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateFileBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "filePath",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "UpdateFile 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileOperationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequestError 400 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "ConflictError 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConflictErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/repos/{owner}/{repo}/folders": {
+            "post": {
+                "description": "Crea una carpeta nueva con .gitkeep. RF03.4",
+                "operationId": "CreateFolder",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateFolderBody"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "CreateFolder 201 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/FileOperationResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequestError 400 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "ConflictError 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConflictErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/repos/{owner}/{repo}/forks": {
+            "get": {
+                "description": "Lista los forks de un repositorio. HU-09",
+                "operationId": "ListForks",
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "perPage",
+                        "in": "query",
+                        "schema": {
+                            "type": "number",
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ListForks 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ListForksBody"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Crea un fork del repositorio. RF02.6",
+                "operationId": "ForkRepository",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateForkBody"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "ForkRepository 201 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RepositoryDTO"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "BadRequestError 400 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BadRequestErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "ConflictError 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConflictErrorResponseContent"
                                 }
                             }
                         }
@@ -3257,6 +4223,112 @@
                 }
             }
         },
+        "/v1/repos/{owner}/{repo}/raw/{filePath}": {
+            "get": {
+                "description": "Descarga el contenido raw de un archivo. RF03.2",
+                "operationId": "GetRawFile",
+                "parameters": [
+                    {
+                        "name": "owner",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "minLength": 3,
+                            "pattern": "^[a-zA-Z0-9_-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "repo",
+                        "in": "path",
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 150,
+                            "minLength": 1,
+                            "pattern": "^[a-zA-Z0-9._-]+$"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "filePath",
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    },
+                    {
+                        "name": "ref",
+                        "in": "query",
+                        "description": "Branch, tag o commit SHA",
+                        "schema": {
+                            "type": "string",
+                            "description": "Branch, tag o commit SHA"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "GetRawFile 200 response",
+                        "headers": {
+                            "Content-Disposition": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            },
+                            "Content-Type": {
+                                "schema": {
+                                    "type": "string"
+                                },
+                                "required": true
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "UnauthorizedError 401 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthorizedErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ForbiddenError 403 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ForbiddenErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "NotFoundError 404 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NotFoundErrorResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "InternalServerError 500 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/InternalServerErrorResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/repos/{owner}/{repo}/star": {
             "delete": {
                 "description": "Quita la estrella de un repositorio. RF06.1",
@@ -3836,6 +4908,34 @@
                     "message"
                 ]
             },
+            "BranchCommitDTO": {
+                "type": "object",
+                "description": "Commit asociado a una branch",
+                "properties": {
+                    "sha": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "author": {
+                        "$ref": "#/components/schemas/CommitSignature"
+                    },
+                    "committer": {
+                        "$ref": "#/components/schemas/CommitSignature"
+                    },
+                    "htmlUrl": {
+                        "type": "string",
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "author",
+                    "committer",
+                    "message",
+                    "sha"
+                ]
+            },
             "BranchDTO": {
                 "type": "object",
                 "properties": {
@@ -3851,6 +4951,29 @@
                 },
                 "required": [
                     "commitSha",
+                    "isDefault",
+                    "name"
+                ]
+            },
+            "BranchDetailDTO": {
+                "type": "object",
+                "description": "Branch con detalle de commit",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "isDefault": {
+                        "type": "boolean"
+                    },
+                    "commit": {
+                        "$ref": "#/components/schemas/BranchCommitDTO"
+                    },
+                    "protected": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "commit",
                     "isDefault",
                     "name"
                 ]
@@ -3928,6 +5051,170 @@
                     "updatedAt"
                 ]
             },
+            "CommitDTO": {
+                "type": "object",
+                "description": "Commit completo",
+                "properties": {
+                    "sha": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "author": {
+                        "$ref": "#/components/schemas/CommitSignature"
+                    },
+                    "committer": {
+                        "$ref": "#/components/schemas/CommitSignature"
+                    },
+                    "htmlUrl": {
+                        "type": "string",
+                        "maxLength": 500
+                    },
+                    "parents": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommitParent"
+                        }
+                    }
+                },
+                "required": [
+                    "author",
+                    "committer",
+                    "message",
+                    "sha"
+                ]
+            },
+            "CommitFile": {
+                "type": "object",
+                "description": "Archivo cambiado en un commit o comparación",
+                "properties": {
+                    "filename": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "added, modified, deleted, renamed"
+                    },
+                    "additions": {
+                        "type": "number"
+                    },
+                    "deletions": {
+                        "type": "number"
+                    },
+                    "changes": {
+                        "type": "number"
+                    },
+                    "patch": {
+                        "type": "string",
+                        "description": "Diff del archivo"
+                    }
+                },
+                "required": [
+                    "filename",
+                    "status"
+                ]
+            },
+            "CommitParent": {
+                "type": "object",
+                "description": "Commit padre",
+                "properties": {
+                    "sha": {
+                        "type": "string"
+                    },
+                    "url": {
+                        "type": "string",
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "sha"
+                ]
+            },
+            "CommitSignature": {
+                "type": "object",
+                "description": "Firma de commit (autor o committer)",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 5
+                    },
+                    "date": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "date",
+                    "email",
+                    "name"
+                ]
+            },
+            "CommitSummaryDTO": {
+                "type": "object",
+                "description": "Resumen de commit (para responses de operaciones)",
+                "properties": {
+                    "sha": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "author": {
+                        "$ref": "#/components/schemas/CommitSignature"
+                    },
+                    "committer": {
+                        "$ref": "#/components/schemas/CommitSignature"
+                    },
+                    "htmlUrl": {
+                        "type": "string",
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "author",
+                    "committer",
+                    "message",
+                    "sha"
+                ]
+            },
+            "CompareDTO": {
+                "type": "object",
+                "description": "Comparación entre branches (HU-20)",
+                "properties": {
+                    "commits": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommitDTO"
+                        }
+                    },
+                    "totalCommits": {
+                        "type": "number"
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommitFile"
+                        }
+                    },
+                    "aheadBy": {
+                        "type": "number"
+                    },
+                    "behindBy": {
+                        "type": "number"
+                    }
+                },
+                "required": [
+                    "aheadBy",
+                    "behindBy",
+                    "commits",
+                    "files",
+                    "totalCommits"
+                ]
+            },
             "ConflictErrorResponseContent": {
                 "type": "object",
                 "properties": {
@@ -3955,6 +5242,73 @@
                     "fromBranch",
                     "name"
                 ]
+            },
+            "CreateFileBody": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "description": "Contenido del archivo en base64"
+                    },
+                    "message": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "description": "Mensaje del commit"
+                    },
+                    "branch": {
+                        "type": "string",
+                        "description": "Branch destino (default: rama por defecto)"
+                    },
+                    "author": {
+                        "$ref": "#/components/schemas/Identity"
+                    },
+                    "committer": {
+                        "$ref": "#/components/schemas/Identity"
+                    }
+                },
+                "required": [
+                    "content",
+                    "message"
+                ]
+            },
+            "CreateFolderBody": {
+                "type": "object",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9._/-]+$",
+                        "description": "Nombre/ruta de la carpeta"
+                    },
+                    "message": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "description": "Mensaje del commit"
+                    },
+                    "branch": {
+                        "type": "string",
+                        "description": "Branch destino"
+                    }
+                },
+                "required": [
+                    "message",
+                    "path"
+                ]
+            },
+            "CreateForkBody": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 150,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9._-]+$",
+                        "description": "Nombre del fork (opcional, default: mismo nombre)"
+                    }
+                }
             },
             "CreateIssueBody": {
                 "type": "object",
@@ -4067,8 +5421,20 @@
                     "visibility"
                 ]
             },
-            "FileEntryDTO": {
+            "DeleteFileResponseBody": {
                 "type": "object",
+                "properties": {
+                    "commit": {
+                        "$ref": "#/components/schemas/CommitSummaryDTO"
+                    }
+                },
+                "required": [
+                    "commit"
+                ]
+            },
+            "DirectoryEntryDTO": {
+                "type": "object",
+                "description": "Entrada de directorio (para listar contenido de carpetas)",
                 "properties": {
                     "name": {
                         "type": "string"
@@ -4076,39 +5442,89 @@
                     "path": {
                         "type": "string"
                     },
+                    "sha": {
+                        "type": "string"
+                    },
                     "type": {
-                        "$ref": "#/components/schemas/FileType"
+                        "$ref": "#/components/schemas/GitObjectType"
                     },
                     "size": {
                         "type": "number"
                     },
-                    "contentType": {
+                    "downloadUrl": {
+                        "type": "string",
+                        "maxLength": 500
+                    }
+                },
+                "required": [
+                    "name",
+                    "path",
+                    "sha",
+                    "type"
+                ]
+            },
+            "FileContentDTO": {
+                "type": "object",
+                "description": "Contenido de archivo (respuesta GET para archivos)",
+                "properties": {
+                    "name": {
                         "type": "string"
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "sha": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/GitObjectType"
+                    },
+                    "size": {
+                        "type": "number"
+                    },
+                    "encoding": {
+                        "type": "string",
+                        "description": "\"base64\" para archivos con contenido"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Contenido del archivo en base64"
                     },
                     "downloadUrl": {
                         "type": "string",
                         "maxLength": 500
                     },
-                    "branch": {
-                        "type": "string"
+                    "htmlUrl": {
+                        "type": "string",
+                        "maxLength": 500
                     },
-                    "updatedAt": {
-                        "type": "string"
+                    "lastCommitSha": {
+                        "type": "string",
+                        "description": "SHA del último commit que modificó el archivo"
                     }
                 },
                 "required": [
-                    "branch",
+                    "downloadUrl",
                     "name",
                     "path",
-                    "type",
-                    "updatedAt"
+                    "sha",
+                    "type"
                 ]
             },
-            "FileType": {
-                "type": "string",
-                "enum": [
-                    "file",
-                    "directory"
+            "FileOperationResponse": {
+                "type": "object",
+                "description": "Respuesta de operación de archivo (create/update/delete)",
+                "properties": {
+                    "content": {
+                        "$ref": "#/components/schemas/FileContentDTO"
+                    },
+                    "commit": {
+                        "$ref": "#/components/schemas/CommitSummaryDTO"
+                    }
+                },
+                "required": [
+                    "commit",
+                    "content"
                 ]
             },
             "ForbiddenErrorResponseContent": {
@@ -4135,18 +5551,83 @@
                     "email"
                 ]
             },
-            "GetRepoContentsBody": {
+            "ForkInfoDTO": {
                 "type": "object",
+                "description": "Información de un fork",
                 "properties": {
-                    "contents": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/FileEntryDTO"
-                        }
+                    "repository": {
+                        "$ref": "#/components/schemas/RepositoryDTO"
+                    },
+                    "parent": {
+                        "$ref": "#/components/schemas/RepositorySummaryDTO"
                     }
                 },
                 "required": [
-                    "contents"
+                    "parent",
+                    "repository"
+                ]
+            },
+            "GetCommitBody": {
+                "type": "object",
+                "properties": {
+                    "commit": {
+                        "$ref": "#/components/schemas/CommitDTO"
+                    },
+                    "files": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommitFile"
+                        },
+                        "description": "Archivos modificados en este commit"
+                    }
+                },
+                "required": [
+                    "commit"
+                ]
+            },
+            "GetCommitDiffOutputPayload": {
+                "type": "string"
+            },
+            "GetFileContentBody": {
+                "type": "object",
+                "description": "Respuesta polimórfica: archivo o lista de entradas",
+                "properties": {
+                    "file": {
+                        "$ref": "#/components/schemas/FileContentDTO"
+                    },
+                    "entries": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/DirectoryEntryDTO"
+                        },
+                        "description": "Si es directorio, contiene la lista de entradas"
+                    }
+                }
+            },
+            "GitObjectType": {
+                "type": "string",
+                "description": "Tipo de objeto Git (archivo o directorio)",
+                "enum": [
+                    "file",
+                    "dir"
+                ]
+            },
+            "Identity": {
+                "type": "object",
+                "description": "Identidad para autor/committer de commits",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "minLength": 5
+                    }
+                },
+                "required": [
+                    "email",
+                    "name"
                 ]
             },
             "InitiateOAuthBody": {
@@ -4343,6 +5824,42 @@
                 },
                 "required": [
                     "collaborators"
+                ]
+            },
+            "ListCommitsBody": {
+                "type": "object",
+                "properties": {
+                    "commits": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommitDTO"
+                        }
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                },
+                "required": [
+                    "commits",
+                    "pagination"
+                ]
+            },
+            "ListForksBody": {
+                "type": "object",
+                "properties": {
+                    "forks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ForkInfoDTO"
+                        }
+                    },
+                    "pagination": {
+                        "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                },
+                "required": [
+                    "forks",
+                    "pagination"
                 ]
             },
             "ListIssueCommentsBody": {
@@ -4772,6 +6289,37 @@
                     "visibility"
                 ]
             },
+            "RepositorySummaryDTO": {
+                "type": "object",
+                "description": "Resumen de repositorio (para parent en forks)",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 150,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9._-]+$"
+                    },
+                    "fullName": {
+                        "type": "string"
+                    },
+                    "ownerUsername": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "minLength": 3,
+                        "pattern": "^[a-zA-Z0-9_-]+$"
+                    }
+                },
+                "required": [
+                    "fullName",
+                    "id",
+                    "name",
+                    "ownerUsername"
+                ]
+            },
             "ResetPasswordBody": {
                 "type": "object",
                 "properties": {
@@ -4922,6 +6470,44 @@
                     "role"
                 ]
             },
+            "UpdateFileBody": {
+                "type": "object",
+                "properties": {
+                    "sha": {
+                        "type": "string",
+                        "description": "SHA actual del archivo (para control de concurrencia)"
+                    },
+                    "content": {
+                        "type": "string",
+                        "description": "Nuevo contenido en base64"
+                    },
+                    "message": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "description": "Mensaje del commit"
+                    },
+                    "branch": {
+                        "type": "string",
+                        "description": "Branch destino"
+                    },
+                    "fromPath": {
+                        "type": "string",
+                        "description": "Path original si es rename/move"
+                    },
+                    "author": {
+                        "$ref": "#/components/schemas/Identity"
+                    },
+                    "committer": {
+                        "$ref": "#/components/schemas/Identity"
+                    }
+                },
+                "required": [
+                    "content",
+                    "message",
+                    "sha"
+                ]
+            },
             "UpdateIssueBody": {
                 "type": "object",
                 "properties": {
@@ -4984,26 +6570,6 @@
                         "type": "string"
                     }
                 }
-            },
-            "UploadFileBody": {
-                "type": "object",
-                "properties": {
-                    "content": {
-                        "type": "string"
-                    },
-                    "message": {
-                        "type": "string",
-                        "maxLength": 500,
-                        "minLength": 1
-                    },
-                    "branch": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "content",
-                    "message"
-                ]
             },
             "UserDTO": {
                 "type": "object",

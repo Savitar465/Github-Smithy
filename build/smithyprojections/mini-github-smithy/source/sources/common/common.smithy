@@ -62,6 +62,23 @@ enum CollaboratorRole {
     REPORTER  = "reporter"
 }
 
+// ─── Tipos para gestión de archivos ──────────────────────────
+
+/// Tipo de objeto Git (archivo o directorio)
+enum GitObjectType {
+    FILE      = "file"
+    DIRECTORY = "dir"
+}
+
+/// Identidad para autor/committer de commits
+structure Identity {
+    @required
+    name: String
+
+    @required
+    email: Email
+}
+
 // ─── Paginación ───────────────────────────────────────────────
 
 structure PaginationMeta {

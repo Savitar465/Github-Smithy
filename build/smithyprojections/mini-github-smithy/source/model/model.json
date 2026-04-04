@@ -1406,6 +1406,36 @@
                     "target": "com.minigithub.auth#UpdateProfile"
                 },
                 {
+                    "target": "com.minigithub.files#CompareCommits"
+                },
+                {
+                    "target": "com.minigithub.files#CreateFile"
+                },
+                {
+                    "target": "com.minigithub.files#CreateFolder"
+                },
+                {
+                    "target": "com.minigithub.files#DeleteFile"
+                },
+                {
+                    "target": "com.minigithub.files#GetCommit"
+                },
+                {
+                    "target": "com.minigithub.files#GetCommitDiff"
+                },
+                {
+                    "target": "com.minigithub.files#GetFileContent"
+                },
+                {
+                    "target": "com.minigithub.files#GetRawFile"
+                },
+                {
+                    "target": "com.minigithub.files#ListCommits"
+                },
+                {
+                    "target": "com.minigithub.files#UpdateFile"
+                },
+                {
                     "target": "com.minigithub.issue#CreateIssue"
                 },
                 {
@@ -1457,16 +1487,16 @@
                     "target": "com.minigithub.repo#DeleteBranch"
                 },
                 {
-                    "target": "com.minigithub.repo#DeleteFile"
-                },
-                {
                     "target": "com.minigithub.repo#DeleteRepository"
                 },
                 {
                     "target": "com.minigithub.repo#DownloadArchive"
                 },
                 {
-                    "target": "com.minigithub.repo#GetRepoContents"
+                    "target": "com.minigithub.repo#ForkRepository"
+                },
+                {
+                    "target": "com.minigithub.repo#GetBranch"
                 },
                 {
                     "target": "com.minigithub.repo#GetRepository"
@@ -1476,6 +1506,9 @@
                 },
                 {
                     "target": "com.minigithub.repo#ListCollaborators"
+                },
+                {
+                    "target": "com.minigithub.repo#ListForks"
                 },
                 {
                     "target": "com.minigithub.repo#ListMyRepositories"
@@ -1494,9 +1527,6 @@
                 },
                 {
                     "target": "com.minigithub.repo#UpdateRepository"
-                },
-                {
-                    "target": "com.minigithub.repo#UploadFile"
                 },
                 {
                     "target": "com.minigithub.search#SearchIssues"
@@ -2344,10 +2374,50 @@
                 "smithy.api#httpError": 403
             }
         },
+        "com.minigithub.common#GitObjectType": {
+            "type": "enum",
+            "members": {
+                "FILE": {
+                    "target": "smithy.api#Unit",
+                    "traits": {
+                        "smithy.api#enumValue": "file"
+                    }
+                },
+                "DIRECTORY": {
+                    "target": "smithy.api#Unit",
+                    "traits": {
+                        "smithy.api#enumValue": "dir"
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Tipo de objeto Git (archivo o directorio)"
+            }
+        },
         "com.minigithub.common#HexColor": {
             "type": "string",
             "traits": {
                 "smithy.api#pattern": "^#[0-9a-fA-F]{6}$"
+            }
+        },
+        "com.minigithub.common#Identity": {
+            "type": "structure",
+            "members": {
+                "name": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "email": {
+                    "target": "com.minigithub.common#Email",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Identidad para autor/committer de commits"
             }
         },
         "com.minigithub.common#InternalServerError": {
@@ -2565,6 +2635,1351 @@
             "type": "string",
             "traits": {
                 "smithy.api#pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+            }
+        },
+        "com.minigithub.files#CommitDTO": {
+            "type": "structure",
+            "members": {
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "message": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "author": {
+                    "target": "com.minigithub.files#CommitSignature",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "committer": {
+                    "target": "com.minigithub.files#CommitSignature",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "htmlUrl": {
+                    "target": "com.minigithub.common#Url"
+                },
+                "parents": {
+                    "target": "com.minigithub.files#CommitParentList"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Commit completo"
+            }
+        },
+        "com.minigithub.files#CommitFile": {
+            "type": "structure",
+            "members": {
+                "filename": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "status": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "added, modified, deleted, renamed",
+                        "smithy.api#required": {}
+                    }
+                },
+                "additions": {
+                    "target": "smithy.api#Integer"
+                },
+                "deletions": {
+                    "target": "smithy.api#Integer"
+                },
+                "changes": {
+                    "target": "smithy.api#Integer"
+                },
+                "patch": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Diff del archivo"
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Archivo cambiado en un commit o comparación"
+            }
+        },
+        "com.minigithub.files#CommitFileList": {
+            "type": "list",
+            "member": {
+                "target": "com.minigithub.files#CommitFile"
+            }
+        },
+        "com.minigithub.files#CommitList": {
+            "type": "list",
+            "member": {
+                "target": "com.minigithub.files#CommitDTO"
+            }
+        },
+        "com.minigithub.files#CommitParent": {
+            "type": "structure",
+            "members": {
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "url": {
+                    "target": "com.minigithub.common#Url"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Commit padre"
+            }
+        },
+        "com.minigithub.files#CommitParentList": {
+            "type": "list",
+            "member": {
+                "target": "com.minigithub.files#CommitParent"
+            }
+        },
+        "com.minigithub.files#CommitSignature": {
+            "type": "structure",
+            "members": {
+                "name": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "email": {
+                    "target": "com.minigithub.common#Email",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "date": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Firma de commit (autor o committer)"
+            }
+        },
+        "com.minigithub.files#CommitSummaryDTO": {
+            "type": "structure",
+            "members": {
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "message": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "author": {
+                    "target": "com.minigithub.files#CommitSignature",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "committer": {
+                    "target": "com.minigithub.files#CommitSignature",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "htmlUrl": {
+                    "target": "com.minigithub.common#Url"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Resumen de commit (para responses de operaciones)"
+            }
+        },
+        "com.minigithub.files#CompareCommits": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#CompareCommitsInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#CompareCommitsOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Compara dos branches mostrando commits y archivos cambiados. HU-20",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/v1/repos/{owner}/{repo}/compare/{baseBranch}/{headBranch}",
+                    "code": 200
+                },
+                "smithy.api#readonly": {}
+            }
+        },
+        "com.minigithub.files#CompareCommitsInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "baseBranch": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch base para comparación",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "headBranch": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch head para comparación",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#CompareCommitsOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.files#CompareDTO",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#CompareDTO": {
+            "type": "structure",
+            "members": {
+                "commits": {
+                    "target": "com.minigithub.files#CommitList",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "totalCommits": {
+                    "target": "smithy.api#Integer",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "files": {
+                    "target": "com.minigithub.files#CommitFileList",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "aheadBy": {
+                    "target": "smithy.api#Integer",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "behindBy": {
+                    "target": "smithy.api#Integer",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Comparación entre branches (HU-20)"
+            }
+        },
+        "com.minigithub.files#CreateFile": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#CreateFileInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#CreateFileOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#BadRequestError"
+                },
+                {
+                    "target": "com.minigithub.common#ConflictError"
+                },
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Crea un archivo nuevo en el repositorio. RF03.1",
+                "smithy.api#http": {
+                    "method": "POST",
+                    "uri": "/v1/repos/{owner}/{repo}/contents/{filePath}",
+                    "code": 201
+                }
+            }
+        },
+        "com.minigithub.files#CreateFileBody": {
+            "type": "structure",
+            "members": {
+                "content": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Contenido del archivo en base64",
+                        "smithy.api#required": {}
+                    }
+                },
+                "message": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Mensaje del commit",
+                        "smithy.api#length": {
+                            "min": 1,
+                            "max": 500
+                        },
+                        "smithy.api#required": {}
+                    }
+                },
+                "branch": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch destino (default: rama por defecto)"
+                    }
+                },
+                "author": {
+                    "target": "com.minigithub.common#Identity",
+                    "traits": {
+                        "smithy.api#documentation": "Autor del commit"
+                    }
+                },
+                "committer": {
+                    "target": "com.minigithub.common#Identity",
+                    "traits": {
+                        "smithy.api#documentation": "Committer del commit"
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#CreateFileInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "filePath": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "body": {
+                    "target": "com.minigithub.files#CreateFileBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#CreateFileOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.files#FileOperationResponse",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#CreateFolder": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#CreateFolderInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#CreateFolderOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#BadRequestError"
+                },
+                {
+                    "target": "com.minigithub.common#ConflictError"
+                },
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Crea una carpeta nueva con .gitkeep. RF03.4",
+                "smithy.api#http": {
+                    "method": "POST",
+                    "uri": "/v1/repos/{owner}/{repo}/folders",
+                    "code": 201
+                }
+            }
+        },
+        "com.minigithub.files#CreateFolderBody": {
+            "type": "structure",
+            "members": {
+                "path": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Nombre/ruta de la carpeta",
+                        "smithy.api#length": {
+                            "min": 1,
+                            "max": 255
+                        },
+                        "smithy.api#pattern": "^[a-zA-Z0-9._/-]+$",
+                        "smithy.api#required": {}
+                    }
+                },
+                "message": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Mensaje del commit",
+                        "smithy.api#length": {
+                            "min": 1,
+                            "max": 500
+                        },
+                        "smithy.api#required": {}
+                    }
+                },
+                "branch": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch destino"
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#CreateFolderInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "body": {
+                    "target": "com.minigithub.files#CreateFolderBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#CreateFolderOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.files#FileOperationResponse",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#DeleteFile": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#DeleteFileInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#DeleteFileOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#BadRequestError"
+                },
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Elimina un archivo generando un commit de borrado. RF03.5",
+                "smithy.api#http": {
+                    "method": "DELETE",
+                    "uri": "/v1/repos/{owner}/{repo}/contents/{filePath}",
+                    "code": 200
+                },
+                "smithy.api#idempotent": {}
+            }
+        },
+        "com.minigithub.files#DeleteFileInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "filePath": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "SHA del archivo a eliminar (para control de concurrencia)",
+                        "smithy.api#httpQuery": "sha",
+                        "smithy.api#required": {}
+                    }
+                },
+                "message": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Mensaje del commit",
+                        "smithy.api#httpQuery": "message",
+                        "smithy.api#length": {
+                            "min": 1,
+                            "max": 500
+                        },
+                        "smithy.api#required": {}
+                    }
+                },
+                "branch": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch donde eliminar",
+                        "smithy.api#httpQuery": "branch"
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#DeleteFileOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.files#DeleteFileResponseBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#DeleteFileResponseBody": {
+            "type": "structure",
+            "members": {
+                "commit": {
+                    "target": "com.minigithub.files#CommitSummaryDTO",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#DirectoryEntryDTO": {
+            "type": "structure",
+            "members": {
+                "name": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "path": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "type": {
+                    "target": "com.minigithub.common#GitObjectType",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "size": {
+                    "target": "smithy.api#Long"
+                },
+                "downloadUrl": {
+                    "target": "com.minigithub.common#Url"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Entrada de directorio (para listar contenido de carpetas)"
+            }
+        },
+        "com.minigithub.files#DirectoryEntryList": {
+            "type": "list",
+            "member": {
+                "target": "com.minigithub.files#DirectoryEntryDTO"
+            }
+        },
+        "com.minigithub.files#FileContentDTO": {
+            "type": "structure",
+            "members": {
+                "name": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "path": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "type": {
+                    "target": "com.minigithub.common#GitObjectType",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "size": {
+                    "target": "smithy.api#Long"
+                },
+                "encoding": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "\"base64\" para archivos con contenido"
+                    }
+                },
+                "content": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Contenido del archivo en base64"
+                    }
+                },
+                "downloadUrl": {
+                    "target": "com.minigithub.common#Url",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "htmlUrl": {
+                    "target": "com.minigithub.common#Url"
+                },
+                "lastCommitSha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "SHA del último commit que modificó el archivo"
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Contenido de archivo (respuesta GET para archivos)"
+            }
+        },
+        "com.minigithub.files#FileOperationResponse": {
+            "type": "structure",
+            "members": {
+                "content": {
+                    "target": "com.minigithub.files#FileContentDTO",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "commit": {
+                    "target": "com.minigithub.files#CommitSummaryDTO",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Respuesta de operación de archivo (create/update/delete)"
+            }
+        },
+        "com.minigithub.files#GetCommit": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#GetCommitInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#GetCommitOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Obtiene el detalle de un commit específico. HU-18",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/v1/repos/{owner}/{repo}/commits/{sha}",
+                    "code": 200
+                },
+                "smithy.api#readonly": {}
+            }
+        },
+        "com.minigithub.files#GetCommitBody": {
+            "type": "structure",
+            "members": {
+                "commit": {
+                    "target": "com.minigithub.files#CommitDTO",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "files": {
+                    "target": "com.minigithub.files#CommitFileList",
+                    "traits": {
+                        "smithy.api#documentation": "Archivos modificados en este commit"
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#GetCommitDiff": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#GetCommitDiffInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#GetCommitDiffOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Obtiene el diff de un commit en formato texto. HU-18",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/v1/repos/{owner}/{repo}/commits/{sha}/diff",
+                    "code": 200
+                },
+                "smithy.api#readonly": {}
+            }
+        },
+        "com.minigithub.files#GetCommitDiffInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#GetCommitDiffOutput": {
+            "type": "structure",
+            "members": {
+                "contentType": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpHeader": "Content-Type",
+                        "smithy.api#required": {}
+                    }
+                },
+                "body": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#GetCommitInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#GetCommitOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.files#GetCommitBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#GetFileContent": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#GetFileContentInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#GetFileContentOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Obtiene el contenido de un archivo o lista el contenido de un directorio. RF03.3",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/v1/repos/{owner}/{repo}/contents/{filePath}",
+                    "code": 200
+                },
+                "smithy.api#readonly": {}
+            }
+        },
+        "com.minigithub.files#GetFileContentBody": {
+            "type": "structure",
+            "members": {
+                "file": {
+                    "target": "com.minigithub.files#FileContentDTO",
+                    "traits": {
+                        "smithy.api#documentation": "Si es archivo, contiene los datos del archivo"
+                    }
+                },
+                "entries": {
+                    "target": "com.minigithub.files#DirectoryEntryList",
+                    "traits": {
+                        "smithy.api#documentation": "Si es directorio, contiene la lista de entradas"
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Respuesta polimórfica: archivo o lista de entradas"
+            }
+        },
+        "com.minigithub.files#GetFileContentInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "filePath": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "ref": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch, tag o commit SHA",
+                        "smithy.api#httpQuery": "ref"
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#GetFileContentOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.files#GetFileContentBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#GetRawFile": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#GetRawFileInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#GetRawFileOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Descarga el contenido raw de un archivo. RF03.2",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/v1/repos/{owner}/{repo}/raw/{filePath}",
+                    "code": 200
+                },
+                "smithy.api#readonly": {}
+            }
+        },
+        "com.minigithub.files#GetRawFileInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "filePath": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "ref": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch, tag o commit SHA",
+                        "smithy.api#httpQuery": "ref"
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#GetRawFileOutput": {
+            "type": "structure",
+            "members": {
+                "contentType": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpHeader": "Content-Type",
+                        "smithy.api#required": {}
+                    }
+                },
+                "contentDisposition": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpHeader": "Content-Disposition",
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#ListCommits": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#ListCommitsInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#ListCommitsOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Lista el historial de commits del repositorio. HU-18",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/v1/repos/{owner}/{repo}/commits",
+                    "code": 200
+                },
+                "smithy.api#readonly": {}
+            }
+        },
+        "com.minigithub.files#ListCommitsBody": {
+            "type": "structure",
+            "members": {
+                "commits": {
+                    "target": "com.minigithub.files#CommitList",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "pagination": {
+                    "target": "com.minigithub.common#PaginationMeta",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#ListCommitsInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch o SHA desde donde empezar",
+                        "smithy.api#httpQuery": "sha"
+                    }
+                },
+                "path": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Filtrar por path de archivo",
+                        "smithy.api#httpQuery": "path"
+                    }
+                },
+                "page": {
+                    "target": "smithy.api#Integer",
+                    "traits": {
+                        "smithy.api#httpQuery": "page",
+                        "smithy.api#range": {
+                            "min": 1
+                        }
+                    }
+                },
+                "perPage": {
+                    "target": "smithy.api#Integer",
+                    "traits": {
+                        "smithy.api#httpQuery": "perPage",
+                        "smithy.api#range": {
+                            "min": 1,
+                            "max": 100
+                        }
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#ListCommitsOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.files#ListCommitsBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#UpdateFile": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.files#UpdateFileInput"
+            },
+            "output": {
+                "target": "com.minigithub.files#UpdateFileOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#BadRequestError"
+                },
+                {
+                    "target": "com.minigithub.common#ConflictError"
+                },
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Actualiza un archivo existente en el repositorio. RF03.1",
+                "smithy.api#http": {
+                    "method": "PUT",
+                    "uri": "/v1/repos/{owner}/{repo}/contents/{filePath}",
+                    "code": 200
+                },
+                "smithy.api#idempotent": {}
+            }
+        },
+        "com.minigithub.files#UpdateFileBody": {
+            "type": "structure",
+            "members": {
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "SHA actual del archivo (para control de concurrencia)",
+                        "smithy.api#required": {}
+                    }
+                },
+                "content": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Nuevo contenido en base64",
+                        "smithy.api#required": {}
+                    }
+                },
+                "message": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Mensaje del commit",
+                        "smithy.api#length": {
+                            "min": 1,
+                            "max": 500
+                        },
+                        "smithy.api#required": {}
+                    }
+                },
+                "branch": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Branch destino"
+                    }
+                },
+                "fromPath": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#documentation": "Path original si es rename/move"
+                    }
+                },
+                "author": {
+                    "target": "com.minigithub.common#Identity"
+                },
+                "committer": {
+                    "target": "com.minigithub.common#Identity"
+                }
+            }
+        },
+        "com.minigithub.files#UpdateFileInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "filePath": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "body": {
+                    "target": "com.minigithub.files#UpdateFileBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.files#UpdateFileOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.files#FileOperationResponse",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
             }
         },
         "com.minigithub.issue#AuthorSummary": {
@@ -4167,6 +5582,41 @@
                 }
             }
         },
+        "com.minigithub.repo#BranchCommitDTO": {
+            "type": "structure",
+            "members": {
+                "sha": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "message": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "author": {
+                    "target": "com.minigithub.files#CommitSignature",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "committer": {
+                    "target": "com.minigithub.files#CommitSignature",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "htmlUrl": {
+                    "target": "com.minigithub.common#Url"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Commit asociado a una branch"
+            }
+        },
         "com.minigithub.repo#BranchDTO": {
             "type": "structure",
             "members": {
@@ -4188,6 +5638,35 @@
                         "smithy.api#required": {}
                     }
                 }
+            }
+        },
+        "com.minigithub.repo#BranchDetailDTO": {
+            "type": "structure",
+            "members": {
+                "name": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "isDefault": {
+                    "target": "smithy.api#Boolean",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "commit": {
+                    "target": "com.minigithub.repo#BranchCommitDTO",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "protected": {
+                    "target": "smithy.api#Boolean"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Branch con detalle de commit"
             }
         },
         "com.minigithub.repo#BranchList": {
@@ -4326,6 +5805,17 @@
                     "traits": {
                         "smithy.api#httpPayload": {},
                         "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.repo#CreateForkBody": {
+            "type": "structure",
+            "members": {
+                "name": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#documentation": "Nombre del fork (opcional, default: mismo nombre)"
                     }
                 }
             }
@@ -4477,84 +5967,6 @@
                 }
             }
         },
-        "com.minigithub.repo#DeleteFile": {
-            "type": "operation",
-            "input": {
-                "target": "com.minigithub.repo#DeleteFileInput"
-            },
-            "output": {
-                "target": "smithy.api#Unit"
-            },
-            "errors": [
-                {
-                    "target": "com.minigithub.common#BadRequestError"
-                },
-                {
-                    "target": "com.minigithub.common#ForbiddenError"
-                },
-                {
-                    "target": "com.minigithub.common#InternalServerError"
-                },
-                {
-                    "target": "com.minigithub.common#NotFoundError"
-                },
-                {
-                    "target": "com.minigithub.common#UnauthorizedError"
-                }
-            ],
-            "traits": {
-                "smithy.api#documentation": "Elimina un archivo generando un commit de borrado. RF03.5",
-                "smithy.api#http": {
-                    "method": "DELETE",
-                    "uri": "/v1/repos/{owner}/{repo}/contents/{filePath}",
-                    "code": 204
-                },
-                "smithy.api#idempotent": {}
-            }
-        },
-        "com.minigithub.repo#DeleteFileInput": {
-            "type": "structure",
-            "members": {
-                "owner": {
-                    "target": "com.minigithub.common#Username",
-                    "traits": {
-                        "smithy.api#httpLabel": {},
-                        "smithy.api#required": {}
-                    }
-                },
-                "repo": {
-                    "target": "com.minigithub.common#RepoName",
-                    "traits": {
-                        "smithy.api#httpLabel": {},
-                        "smithy.api#required": {}
-                    }
-                },
-                "filePath": {
-                    "target": "smithy.api#String",
-                    "traits": {
-                        "smithy.api#httpLabel": {},
-                        "smithy.api#required": {}
-                    }
-                },
-                "message": {
-                    "target": "smithy.api#String",
-                    "traits": {
-                        "smithy.api#httpQuery": "message",
-                        "smithy.api#length": {
-                            "min": 1,
-                            "max": 500
-                        },
-                        "smithy.api#required": {}
-                    }
-                },
-                "branch": {
-                    "target": "smithy.api#String",
-                    "traits": {
-                        "smithy.api#httpQuery": "branch"
-                    }
-                }
-            }
-        },
         "com.minigithub.repo#DeleteRepository": {
             "type": "operation",
             "input": {
@@ -4682,82 +6094,47 @@
                 }
             }
         },
-        "com.minigithub.repo#FileEntryDTO": {
+        "com.minigithub.repo#ForkInfoDTO": {
             "type": "structure",
             "members": {
-                "name": {
-                    "target": "smithy.api#String",
+                "repository": {
+                    "target": "com.minigithub.repo#RepositoryDTO",
                     "traits": {
                         "smithy.api#required": {}
                     }
                 },
-                "path": {
-                    "target": "smithy.api#String",
-                    "traits": {
-                        "smithy.api#required": {}
-                    }
-                },
-                "type": {
-                    "target": "com.minigithub.repo#FileType",
-                    "traits": {
-                        "smithy.api#required": {}
-                    }
-                },
-                "size": {
-                    "target": "smithy.api#Long"
-                },
-                "contentType": {
-                    "target": "smithy.api#String"
-                },
-                "downloadUrl": {
-                    "target": "com.minigithub.common#Url"
-                },
-                "branch": {
-                    "target": "smithy.api#String",
-                    "traits": {
-                        "smithy.api#required": {}
-                    }
-                },
-                "updatedAt": {
-                    "target": "smithy.api#String",
+                "parent": {
+                    "target": "com.minigithub.repo#RepositorySummaryDTO",
                     "traits": {
                         "smithy.api#required": {}
                     }
                 }
+            },
+            "traits": {
+                "smithy.api#documentation": "Información de un fork"
             }
         },
-        "com.minigithub.repo#FileEntryList": {
+        "com.minigithub.repo#ForkList": {
             "type": "list",
             "member": {
-                "target": "com.minigithub.repo#FileEntryDTO"
+                "target": "com.minigithub.repo#ForkInfoDTO"
             }
         },
-        "com.minigithub.repo#FileType": {
-            "type": "enum",
-            "members": {
-                "FILE": {
-                    "target": "smithy.api#Unit",
-                    "traits": {
-                        "smithy.api#enumValue": "file"
-                    }
-                },
-                "DIRECTORY": {
-                    "target": "smithy.api#Unit",
-                    "traits": {
-                        "smithy.api#enumValue": "directory"
-                    }
-                }
-            }
-        },
-        "com.minigithub.repo#GetRepoContents": {
+        "com.minigithub.repo#ForkRepository": {
             "type": "operation",
             "input": {
-                "target": "com.minigithub.repo#GetRepoContentsInput"
+                "target": "com.minigithub.repo#ForkRepositoryInput"
             },
             "output": {
-                "target": "com.minigithub.repo#GetRepoContentsOutput"
+                "target": "com.minigithub.repo#ForkRepositoryOutput"
             },
             "errors": [
+                {
+                    "target": "com.minigithub.common#BadRequestError"
+                },
+                {
+                    "target": "com.minigithub.common#ConflictError"
+                },
                 {
                     "target": "com.minigithub.common#ForbiddenError"
                 },
@@ -4772,27 +6149,15 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "Lista archivos y carpetas de una ruta del repositorio. RF03.3",
+                "smithy.api#documentation": "Crea un fork del repositorio. RF02.6",
                 "smithy.api#http": {
-                    "method": "GET",
-                    "uri": "/v1/repos/{owner}/{repo}/contents/{filePath}",
-                    "code": 200
-                },
-                "smithy.api#readonly": {}
-            }
-        },
-        "com.minigithub.repo#GetRepoContentsBody": {
-            "type": "structure",
-            "members": {
-                "contents": {
-                    "target": "com.minigithub.repo#FileEntryList",
-                    "traits": {
-                        "smithy.api#required": {}
-                    }
+                    "method": "POST",
+                    "uri": "/v1/repos/{owner}/{repo}/forks",
+                    "code": 201
                 }
             }
         },
-        "com.minigithub.repo#GetRepoContentsInput": {
+        "com.minigithub.repo#ForkRepositoryInput": {
             "type": "structure",
             "members": {
                 "owner": {
@@ -4809,26 +6174,89 @@
                         "smithy.api#required": {}
                     }
                 },
-                "filePath": {
-                    "target": "smithy.api#String",
+                "body": {
+                    "target": "com.minigithub.repo#CreateForkBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.repo#ForkRepositoryOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.repo#RepositoryDTO",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.repo#GetBranch": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.repo#GetBranchInput"
+            },
+            "output": {
+                "target": "com.minigithub.repo#GetBranchOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Obtiene el detalle de una rama específica. RF02.5",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/v1/repos/{owner}/{repo}/branches/{branch}",
+                    "code": 200
+                },
+                "smithy.api#readonly": {}
+            }
+        },
+        "com.minigithub.repo#GetBranchInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
                     "traits": {
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
                 },
-                "ref": {
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "branch": {
                     "target": "smithy.api#String",
                     "traits": {
-                        "smithy.api#httpQuery": "ref"
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
                     }
                 }
             }
         },
-        "com.minigithub.repo#GetRepoContentsOutput": {
+        "com.minigithub.repo#GetBranchOutput": {
             "type": "structure",
             "members": {
                 "body": {
-                    "target": "com.minigithub.repo#GetRepoContentsBody",
+                    "target": "com.minigithub.repo#BranchDetailDTO",
                     "traits": {
                         "smithy.api#httpPayload": {},
                         "smithy.api#required": {}
@@ -5002,6 +6430,105 @@
             "members": {
                 "body": {
                     "target": "com.minigithub.repo#ListCollaboratorsBody",
+                    "traits": {
+                        "smithy.api#httpPayload": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.repo#ListForks": {
+            "type": "operation",
+            "input": {
+                "target": "com.minigithub.repo#ListForksInput"
+            },
+            "output": {
+                "target": "com.minigithub.repo#ListForksOutput"
+            },
+            "errors": [
+                {
+                    "target": "com.minigithub.common#ForbiddenError"
+                },
+                {
+                    "target": "com.minigithub.common#InternalServerError"
+                },
+                {
+                    "target": "com.minigithub.common#NotFoundError"
+                },
+                {
+                    "target": "com.minigithub.common#UnauthorizedError"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "Lista los forks de un repositorio. HU-09",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/v1/repos/{owner}/{repo}/forks",
+                    "code": 200
+                },
+                "smithy.api#readonly": {}
+            }
+        },
+        "com.minigithub.repo#ListForksBody": {
+            "type": "structure",
+            "members": {
+                "forks": {
+                    "target": "com.minigithub.repo#ForkList",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "pagination": {
+                    "target": "com.minigithub.common#PaginationMeta",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.minigithub.repo#ListForksInput": {
+            "type": "structure",
+            "members": {
+                "owner": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "repo": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "page": {
+                    "target": "smithy.api#Integer",
+                    "traits": {
+                        "smithy.api#httpQuery": "page",
+                        "smithy.api#range": {
+                            "min": 1
+                        }
+                    }
+                },
+                "perPage": {
+                    "target": "smithy.api#Integer",
+                    "traits": {
+                        "smithy.api#httpQuery": "perPage",
+                        "smithy.api#range": {
+                            "min": 1,
+                            "max": 100
+                        }
+                    }
+                }
+            }
+        },
+        "com.minigithub.repo#ListForksOutput": {
+            "type": "structure",
+            "members": {
+                "body": {
+                    "target": "com.minigithub.repo#ListForksBody",
                     "traits": {
                         "smithy.api#httpPayload": {},
                         "smithy.api#required": {}
@@ -5260,6 +6787,38 @@
                 "target": "com.minigithub.repo#RepositoryDTO"
             }
         },
+        "com.minigithub.repo#RepositorySummaryDTO": {
+            "type": "structure",
+            "members": {
+                "id": {
+                    "target": "com.minigithub.common#Uuid",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "name": {
+                    "target": "com.minigithub.common#RepoName",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "fullName": {
+                    "target": "smithy.api#String",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                },
+                "ownerUsername": {
+                    "target": "com.minigithub.common#Username",
+                    "traits": {
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "Resumen de repositorio (para parent en forks)"
+            }
+        },
         "com.minigithub.repo#StarRepository": {
             "type": "operation",
             "input": {
@@ -5490,110 +7049,6 @@
             "members": {
                 "body": {
                     "target": "com.minigithub.repo#RepositoryDTO",
-                    "traits": {
-                        "smithy.api#httpPayload": {},
-                        "smithy.api#required": {}
-                    }
-                }
-            }
-        },
-        "com.minigithub.repo#UploadFile": {
-            "type": "operation",
-            "input": {
-                "target": "com.minigithub.repo#UploadFileInput"
-            },
-            "output": {
-                "target": "com.minigithub.repo#UploadFileOutput"
-            },
-            "errors": [
-                {
-                    "target": "com.minigithub.common#BadRequestError"
-                },
-                {
-                    "target": "com.minigithub.common#ForbiddenError"
-                },
-                {
-                    "target": "com.minigithub.common#InternalServerError"
-                },
-                {
-                    "target": "com.minigithub.common#NotFoundError"
-                },
-                {
-                    "target": "com.minigithub.common#UnauthorizedError"
-                }
-            ],
-            "traits": {
-                "smithy.api#documentation": "Sube o actualiza un archivo en el repositorio. RF03.1",
-                "smithy.api#http": {
-                    "method": "PUT",
-                    "uri": "/v1/repos/{owner}/{repo}/contents/{filePath}",
-                    "code": 201
-                },
-                "smithy.api#idempotent": {}
-            }
-        },
-        "com.minigithub.repo#UploadFileBody": {
-            "type": "structure",
-            "members": {
-                "content": {
-                    "target": "smithy.api#String",
-                    "traits": {
-                        "smithy.api#required": {}
-                    }
-                },
-                "message": {
-                    "target": "smithy.api#String",
-                    "traits": {
-                        "smithy.api#length": {
-                            "min": 1,
-                            "max": 500
-                        },
-                        "smithy.api#required": {}
-                    }
-                },
-                "branch": {
-                    "target": "smithy.api#String"
-                }
-            }
-        },
-        "com.minigithub.repo#UploadFileInput": {
-            "type": "structure",
-            "members": {
-                "owner": {
-                    "target": "com.minigithub.common#Username",
-                    "traits": {
-                        "smithy.api#httpLabel": {},
-                        "smithy.api#required": {}
-                    }
-                },
-                "repo": {
-                    "target": "com.minigithub.common#RepoName",
-                    "traits": {
-                        "smithy.api#httpLabel": {},
-                        "smithy.api#required": {}
-                    }
-                },
-                "filePath": {
-                    "target": "smithy.api#String",
-                    "traits": {
-                        "smithy.api#httpLabel": {},
-                        "smithy.api#required": {}
-                    }
-                },
-                "body": {
-                    "target": "com.minigithub.repo#UploadFileBody",
-                    "traits": {
-                        "smithy.api#httpPayload": {},
-                        "smithy.api#required": {}
-                    }
-                }
-            }
-        },
-        "com.minigithub.repo#UploadFileOutput": {
-            "type": "structure",
-            "members": {
-                "body": {
-                    "target": "com.minigithub.repo#FileEntryDTO",
                     "traits": {
                         "smithy.api#httpPayload": {},
                         "smithy.api#required": {}
