@@ -56,7 +56,8 @@
     "projectionName": "source",
     "resourceShapeIds": [],
     "serviceShapeIds": [
-        "com.minigithub#MiniGitHubApi"
+        "com.minigithub.auth#AuthAccountApi",
+        "com.minigithub.auth#AuthPublicApi"
     ],
     "traitDefNames": [
         "aws.api#arn",

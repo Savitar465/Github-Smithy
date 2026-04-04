@@ -29,7 +29,7 @@ mini-github-smithy/
 
 ## Requisitos
 
-- Java 11 o superior
+- Java 17 o superior
 - Conexión a internet (para descargar Gradle y dependencias la primera vez)
 
 ## Primeros pasos
@@ -41,7 +41,7 @@ cd mini-github-smithy
 bash setup.sh
 ```
 
-Esto descarga Gradle 8.5 y genera los archivos `gradlew`, `gradlew.bat` y `gradle-wrapper.jar`.
+Esto descarga Gradle 8.10.2 y genera los archivos `gradlew`, `gradlew.bat` y `gradle-wrapper.jar`.
 
 ### Paso 2 — Compilar y validar el modelo
 
@@ -75,6 +75,19 @@ swagger-ui-watcher build/smithyprojections/mini-github-smithy/openapi/openapi/Mi
 | Repo Service | 3002 | CRUD repos, Upload/Delete/Get archivos, DownloadArchive, Branches x3, Star/Unstar, Colaboradores x4 |
 | Issue Service | 3003 | CRUD issues, Comentarios x2, Labels x2, Pull Requests x5 |
 | Search Service | 3004 | SearchRepositories, SearchUsers, SearchIssues |
+
+## Generacion de codigo (Auth)
+
+```bash
+./gradlew smithyBuild
+./gradlew generateAuthJava
+```
+
+Salida esperada:
+- OpenAPI Auth Public: `build/smithyprojections/mini-github-smithy/openapi-auth-public/openapi/AuthPublicApi.openapi.json`
+- OpenAPI Auth Account: `build/smithyprojections/mini-github-smithy/openapi-auth-account/openapi/AuthAccountApi.openapi.json`
+- Cliente Java: `build/generated/openapi/auth-java-client`
+- Server Java (stubs Spring): `build/generated/openapi/auth-java-server`
 
 ## Autenticación
 

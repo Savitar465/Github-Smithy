@@ -1,6 +1,0 @@
-auth/auth.smithy
-common/common.smithy
-issue/issue.smithy
-repo/repo.smithy
-search/search.smithy
-service.smithy

@@ -1368,18 +1368,45 @@
                 }
             }
         },
-        "com.minigithub#MiniGitHubApi": {
+        "com.minigithub.auth#AuthAccountApi": {
             "type": "service",
             "version": "1.0.0",
             "operations": [
-                {
-                    "target": "com.minigithub.auth#ForgotPassword"
-                },
                 {
                     "target": "com.minigithub.auth#GetMe"
                 },
                 {
                     "target": "com.minigithub.auth#GetUserByUsername"
+                },
+                {
+                    "target": "com.minigithub.auth#Logout"
+                },
+                {
+                    "target": "com.minigithub.auth#RefreshToken"
+                },
+                {
+                    "target": "com.minigithub.auth#UpdateProfile"
+                }
+            ],
+            "traits": {
+                "aws.protocols#restJson1": {},
+                "smithy.api#documentation": "Servicio protegido para operaciones de cuenta autenticada.",
+                "smithy.api#httpBearerAuth": {},
+                "smithy.api#title": "Mini-GitHub Auth Account API"
+            }
+        },
+        "com.minigithub.auth#AuthModelIndex": {
+            "type": "string",
+            "traits": {
+                "smithy.api#documentation": "Indice del dominio auth. Tipos compartidos en auth/types y operaciones en auth/operations."
+            }
+        },
+        "com.minigithub.auth#AuthPublicApi": {
+            "type": "service",
+            "version": "1.0.0",
+            "operations": [
+                {
+                    "target": "com.minigithub.auth#ForgotPassword"
                 },
                 {
                     "target": "com.minigithub.auth#InitiateOAuth"
@@ -1388,131 +1415,19 @@
                     "target": "com.minigithub.auth#Login"
                 },
                 {
-                    "target": "com.minigithub.auth#Logout"
-                },
-                {
                     "target": "com.minigithub.auth#OAuthCallback"
-                },
-                {
-                    "target": "com.minigithub.auth#RefreshToken"
                 },
                 {
                     "target": "com.minigithub.auth#Register"
                 },
                 {
                     "target": "com.minigithub.auth#ResetPassword"
-                },
-                {
-                    "target": "com.minigithub.auth#UpdateProfile"
-                },
-                {
-                    "target": "com.minigithub.issue#CreateIssue"
-                },
-                {
-                    "target": "com.minigithub.issue#CreateIssueComment"
-                },
-                {
-                    "target": "com.minigithub.issue#CreateLabel"
-                },
-                {
-                    "target": "com.minigithub.issue#CreatePullRequest"
-                },
-                {
-                    "target": "com.minigithub.issue#GetIssue"
-                },
-                {
-                    "target": "com.minigithub.issue#GetPullRequest"
-                },
-                {
-                    "target": "com.minigithub.issue#ListIssueComments"
-                },
-                {
-                    "target": "com.minigithub.issue#ListIssues"
-                },
-                {
-                    "target": "com.minigithub.issue#ListLabels"
-                },
-                {
-                    "target": "com.minigithub.issue#ListPullRequests"
-                },
-                {
-                    "target": "com.minigithub.issue#MergePullRequest"
-                },
-                {
-                    "target": "com.minigithub.issue#ReviewPullRequest"
-                },
-                {
-                    "target": "com.minigithub.issue#UpdateIssue"
-                },
-                {
-                    "target": "com.minigithub.repo#AddCollaborator"
-                },
-                {
-                    "target": "com.minigithub.repo#CreateBranch"
-                },
-                {
-                    "target": "com.minigithub.repo#CreateRepository"
-                },
-                {
-                    "target": "com.minigithub.repo#DeleteBranch"
-                },
-                {
-                    "target": "com.minigithub.repo#DeleteFile"
-                },
-                {
-                    "target": "com.minigithub.repo#DeleteRepository"
-                },
-                {
-                    "target": "com.minigithub.repo#DownloadArchive"
-                },
-                {
-                    "target": "com.minigithub.repo#GetRepoContents"
-                },
-                {
-                    "target": "com.minigithub.repo#GetRepository"
-                },
-                {
-                    "target": "com.minigithub.repo#ListBranches"
-                },
-                {
-                    "target": "com.minigithub.repo#ListCollaborators"
-                },
-                {
-                    "target": "com.minigithub.repo#ListMyRepositories"
-                },
-                {
-                    "target": "com.minigithub.repo#RemoveCollaborator"
-                },
-                {
-                    "target": "com.minigithub.repo#StarRepository"
-                },
-                {
-                    "target": "com.minigithub.repo#UnstarRepository"
-                },
-                {
-                    "target": "com.minigithub.repo#UpdateCollaboratorRole"
-                },
-                {
-                    "target": "com.minigithub.repo#UpdateRepository"
-                },
-                {
-                    "target": "com.minigithub.repo#UploadFile"
-                },
-                {
-                    "target": "com.minigithub.search#SearchIssues"
-                },
-                {
-                    "target": "com.minigithub.search#SearchRepositories"
-                },
-                {
-                    "target": "com.minigithub.search#SearchUsers"
                 }
             ],
             "traits": {
                 "aws.protocols#restJson1": {},
-                "smithy.api#documentation": "API REST de Mini-GitHub. Proyecto académico de Arquitectura en la Nube y Microservicios.",
-                "smithy.api#httpBearerAuth": {},
-                "smithy.api#title": "Mini-GitHub API"
+                "smithy.api#documentation": "Servicio publico de autenticacion sin token previo.",
+                "smithy.api#title": "Mini-GitHub Auth Public API"
             }
         },
         "com.minigithub.auth#AuthTokenDTO": {
@@ -1538,6 +1453,12 @@
                 }
             }
         },
+        "com.minigithub.auth#AuthTypesIndex": {
+            "type": "string",
+            "traits": {
+                "smithy.api#documentation": "Indice de tipos auth. Los shapes viven en user.smithy, token.smithy y oauth.smithy."
+            }
+        },
         "com.minigithub.auth#ForgotPassword": {
             "type": "operation",
             "input": {
@@ -1555,7 +1476,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "Envía email con enlace temporal de recuperación. RF01.4",
+                "smithy.api#documentation": "Envia email con enlace temporal de recuperacion. RF01.4",
                 "smithy.api#http": {
                     "method": "POST",
                     "uri": "/v1/auth/forgot-password",
@@ -1644,7 +1565,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "Devuelve el perfil público de un usuario por su username. RF05.2",
+                "smithy.api#documentation": "Devuelve el perfil publico de un usuario por su username. RF05.2",
                 "smithy.api#http": {
                     "method": "GET",
                     "uri": "/v1/users/{username}",
@@ -1758,7 +1679,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "Autentica con email y contraseña, retorna JWT. RF01.1",
+                "smithy.api#documentation": "Autentica con email y contrasena, retorna JWT. RF01.1",
                 "smithy.api#http": {
                     "method": "POST",
                     "uri": "/v1/auth/login",
@@ -1949,7 +1870,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "Renueva el access token antes de su expiración. RNF14",
+                "smithy.api#documentation": "Renueva el access token antes de su expiracion. RNF14",
                 "smithy.api#http": {
                     "method": "POST",
                     "uri": "/v1/auth/refresh",
@@ -1989,7 +1910,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "Registra un nuevo usuario con email y contraseña. RF01.1",
+                "smithy.api#documentation": "Registra un nuevo usuario con email y contrasena. RF01.1",
                 "smithy.api#http": {
                     "method": "POST",
                     "uri": "/v1/auth/register",
@@ -2087,7 +2008,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "Cambia la contraseña usando el token de recuperación. RF01.4",
+                "smithy.api#documentation": "Cambia la contrasena usando el token de recuperacion. RF01.4",
                 "smithy.api#http": {
                     "method": "POST",
                     "uri": "/v1/auth/reset-password/{token}",
