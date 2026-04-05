@@ -2,6 +2,7 @@ $version: "2"
 
 namespace com.minigithub.repo
 
+use aws.protocols#restJson1
 use com.minigithub.common#BadRequestError
 use com.minigithub.common#CollaboratorRole
 use com.minigithub.common#ConflictError
@@ -931,3 +932,39 @@ structure RemoveCollaboratorInput {
     @httpLabel
     collaboratorUsername: Username
 }
+
+@title("Mini-GitHub Repo API")
+@restJson1
+@httpBearerAuth
+@documentation("Servicio de repositorios, ramas, estrellas, colaboradores y contenido basico del repo.")
+service RepoApi {
+    version: "1.0.0"
+    operations: [
+        ListMyRepositories
+        CreateRepository
+        GetRepository
+        UpdateRepository
+        DeleteRepository
+        ForkRepository
+        ListRepositoryForks
+        GetRepoContents
+        UploadFile
+        DeleteFile
+        DownloadArchive
+        ListBranches
+        GetBranch
+        CreateBranch
+        DeleteBranch
+        StarRepository
+        UnstarRepository
+        StarRepositoryForAuthenticatedUser
+        UnstarRepositoryForAuthenticatedUser
+        ListCollaborators
+        GetCollaborator
+        AddCollaboratorByUsername
+        AddCollaboratorWithRole
+        UpdateCollaboratorRole
+        RemoveCollaborator
+    ]
+}
+

@@ -2,6 +2,7 @@ $version: "2"
 
 namespace com.minigithub.files
 
+use aws.protocols#restJson1
 use com.minigithub.common#BadRequestError
 use com.minigithub.common#ConflictError
 use com.minigithub.common#Email
@@ -746,3 +747,25 @@ structure CompareCommitsOutput {
     @httpPayload
     body: CompareDTO
 }
+
+@title("Mini-GitHub Files API")
+@restJson1
+@httpBearerAuth
+@documentation("Servicio para contenido de archivos, commits, descargas y comparacion de branches.")
+service FilesApi {
+    version: "1.0.0"
+    operations: [
+        GetFileContent
+        GetRepositoryContents
+        CreateFile
+        UpdateFile
+        DeleteFile
+        CreateFolder
+        GetRawFile
+        ListCommits
+        GetCommit
+        GetCommitDiff
+        CompareCommits
+    ]
+}
+

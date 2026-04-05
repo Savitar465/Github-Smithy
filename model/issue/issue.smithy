@@ -2,6 +2,7 @@ $version: "2"
 
 namespace com.minigithub.issue
 
+use aws.protocols#restJson1
 use com.minigithub.common#BadRequestError
 use com.minigithub.common#ConflictError
 use com.minigithub.common#ForbiddenError
@@ -1020,3 +1021,44 @@ structure GetPullRequestMergeabilityOutput {
     @httpPayload
     body: PullRequestMergeabilityDTO
 }
+
+@title("Mini-GitHub Issue API")
+@restJson1
+@httpBearerAuth
+@documentation("Servicio para issues, labels, comentarios y pull requests.")
+service IssueApi {
+    version: "1.0.0"
+    operations: [
+        ListIssues
+        CreateIssue
+        GetIssue
+        UpdateIssue
+        ListIssueComments
+        CreateIssueComment
+        ListLabels
+        CreateLabel
+        ListPullRequests
+        CreatePullRequest
+        GetPullRequest
+        ReviewPullRequest
+        MergePullRequest
+        ListPullRequestComments
+        CreatePullRequestComment
+        GetPullRequestMergeability
+    ]
+}
+
+@title("Mini-GitHub Issue Comments API")
+@restJson1
+@httpBearerAuth
+@documentation("Servicio separado para comentarios de issue a nivel repositorio por compatibilidad de rutas.")
+service IssueCommentsApi {
+    version: "1.0.0"
+    operations: [
+        ListRepositoryIssueComments
+        GetIssueComment
+        UpdateIssueComment
+        DeleteIssueComment
+    ]
+}
+

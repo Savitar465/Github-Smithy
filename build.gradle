@@ -21,49 +21,110 @@ dependencies {
     implementation "software.amazon.smithy:smithy-openapi:1.47.0"
     implementation "software.amazon.smithy:smithy-aws-apigateway-openapi:1.47.0"
 
-    // CLI para generar codigo Java desde OpenAPI
+    // CLI para generar codigo desde OpenAPI
     openapiGenerator "org.openapitools:openapi-generator-cli:7.5.0"
 }
 
 sourceSets.main.java.srcDirs = ['model', 'src/main/smithy']
 
 def smithyProjectionBase = layout.buildDirectory.dir("smithyprojections/${rootProject.name}").get().asFile.absolutePath
-def authPublicSpec = "${smithyProjectionBase}/openapi-auth-public/openapi/AuthPublicApi.openapi.json"
-def authAccountSpec = "${smithyProjectionBase}/openapi-auth-account/openapi/AuthAccountApi.openapi.json"
 
-tasks.register("generateAuthJavaClient", JavaExec) {
-    dependsOn tasks.named("smithyBuildJar")
-    group = "code generation"
-    description = "Genera cliente Java desde AuthPublicApi OpenAPI"
-    classpath = configurations.openapiGenerator
-    mainClass = "org.openapitools.codegen.OpenAPIGenerator"
-    args "generate", "-g", "java",
-        "-i", authPublicSpec,
-        "-o", layout.buildDirectory.dir("generated/openapi/auth-java-client").get().asFile.absolutePath,
-        "--api-package", "com.minigithub.generated.auth.client.api",
-        "--model-package", "com.minigithub.generated.auth.client.model",
-        "--invoker-package", "com.minigithub.generated.auth.client.invoker",
-        "--additional-properties", "dateLibrary=java8,library=webclient,useJakartaEe=true,hideGenerationTimestamp=true"
+def codegenTargets = [
+    [id: "authPublic", projection: "openapi-auth-public", specName: "AuthPublicApi", packageBase: "com.minigithub.generated.auth.publicapi", generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "authAccount", projection: "openapi-auth-account", specName: "AuthAccountApi", packageBase: "com.minigithub.generated.auth.account",   generateTypeScriptClient: false, generateJavaServer: true],
+    [id: "repo",       projection: "openapi-repo",         specName: "RepoApi",       packageBase: "com.minigithub.generated.repo",           generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "issue",      projection: "openapi-issue",        specName: "IssueApi",      packageBase: "com.minigithub.generated.issue",          generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "issueComments", projection: "openapi-issue-comments", specName: "IssueCommentsApi", packageBase: "com.minigithub.generated.issue.comments", generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "files",      projection: "openapi-files",        specName: "FilesApi",      packageBase: "com.minigithub.generated.files",          generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "search",     projection: "openapi-search",       specName: "SearchApi",     packageBase: "com.minigithub.generated.search",         generateTypeScriptClient: true,  generateJavaServer: true],
+]
+
+def typeScriptClientTaskNames = []
+def javaServerTaskNames = []
+
+codegenTargets.each { target ->
+    def specPath = "${smithyProjectionBase}/${target.projection}/openapi/${target.specName}.openapi.json"
+    def targetName = target.id.substring(0, 1).toUpperCase() + target.id.substring(1)
+
+    if (target.generateTypeScriptClient) {
+        def taskName = "generate${targetName}TypeScriptClient"
+        typeScriptClientTaskNames << taskName
+
+        tasks.register(taskName, JavaExec) {
+            dependsOn tasks.named("smithyBuildJar")
+            group = "code generation"
+            description = "Genera cliente TypeScript desde ${target.specName} OpenAPI"
+            classpath = configurations.openapiGenerator
+            mainClass = "org.openapitools.codegen.OpenAPIGenerator"
+            args "generate", "-g", "typescript-fetch",
+                "--skip-validate-spec",
+                "-i", specPath,
+                "-o", layout.buildDirectory.dir("generated/openapi/${target.id}-typescript-client").get().asFile.absolutePath,
+                "--additional-properties", "supportsES6=true,typescriptThreePlus=true,withInterfaces=true,useSingleRequestParameter=true,npmName=minigithub-${target.id}-client,npmVersion=1.0.0,hideGenerationTimestamp=true"
+        }
+    }
+
+    if (target.generateJavaServer) {
+        def taskName = "generate${targetName}JavaServer"
+        javaServerTaskNames << taskName
+
+        tasks.register(taskName, JavaExec) {
+            dependsOn tasks.named("smithyBuildJar")
+            group = "code generation"
+            description = "Genera server Java Spring (controllers + delegates) desde ${target.specName} OpenAPI"
+            classpath = configurations.openapiGenerator
+            mainClass = "org.openapitools.codegen.OpenAPIGenerator"
+            args "generate", "-g", "spring",
+                "--skip-validate-spec",
+                "-i", specPath,
+                "-o", layout.buildDirectory.dir("generated/openapi/${target.id}-java-server").get().asFile.absolutePath,
+                "--api-package", "${target.packageBase}.server.api",
+                "--model-package", "${target.packageBase}.server.model",
+                "--invoker-package", "${target.packageBase}.server.invoker",
+                "--additional-properties", "delegatePattern=true,useSpringBoot3=true,useJakartaEe=true,dateLibrary=java8,hideGenerationTimestamp=true"
+        }
+    }
 }
 
-tasks.register("generateAuthJavaServer", JavaExec) {
-    dependsOn tasks.named("smithyBuildJar")
+tasks.register("generateAllTypeScriptClients") {
     group = "code generation"
-    description = "Genera stubs Spring Java desde AuthAccountApi OpenAPI"
-    classpath = configurations.openapiGenerator
-    mainClass = "org.openapitools.codegen.OpenAPIGenerator"
-    args "generate", "-g", "spring",
-        "-i", authAccountSpec,
-        "-o", layout.buildDirectory.dir("generated/openapi/auth-java-server").get().asFile.absolutePath,
-        "--api-package", "com.minigithub.generated.auth.server.api",
-        "--model-package", "com.minigithub.generated.auth.server.model",
-        "--invoker-package", "com.minigithub.generated.auth.server.invoker",
-        "--additional-properties", "interfaceOnly=true,useSpringBoot3=true,useJakartaEe=true,dateLibrary=java8,hideGenerationTimestamp=true"
+    description = "Genera todos los clientes TypeScript"
+    dependsOn typeScriptClientTaskNames.collect { tasks.named(it) }
+}
+
+tasks.register("generateAllJavaServers") {
+    group = "code generation"
+    description = "Genera todos los servers Java con stubs de services (delegate pattern)"
+    dependsOn javaServerTaskNames.collect { tasks.named(it) }
+}
+
+tasks.register("generateAllCodegen") {
+    group = "code generation"
+    description = "Genera clientes TypeScript y servers Java para todos los dominios"
+    dependsOn tasks.named("generateAllTypeScriptClients"), tasks.named("generateAllJavaServers")
+}
+
+tasks.register("generateAuthTypeScriptClient") {
+    group = "code generation"
+    description = "Alias: genera cliente TypeScript de auth publico"
+    dependsOn tasks.named("generateAuthPublicTypeScriptClient")
+}
+
+tasks.register("generateAuthJavaServer") {
+    group = "code generation"
+    description = "Alias: genera server Java de auth account"
+    dependsOn tasks.named("generateAuthAccountJavaServer")
+}
+
+tasks.register("generateAuthCodegen") {
+    group = "code generation"
+    description = "Genera cliente TypeScript (auth-public) y server Java (auth-account)"
+    dependsOn tasks.named("generateAuthTypeScriptClient"), tasks.named("generateAuthJavaServer")
 }
 
 tasks.register("generateAuthJava") {
     group = "code generation"
-    description = "Genera cliente y server Java para Auth"
-    dependsOn tasks.named("generateAuthJavaClient"), tasks.named("generateAuthJavaServer")
+    description = "Alias de compatibilidad para generateAuthCodegen"
+    dependsOn tasks.named("generateAuthCodegen")
 }
 
