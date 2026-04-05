@@ -1,23 +1,23 @@
 $version: "2"
 
 namespace com.minigithub.repo
-use com.minigithub.common#Uuid
-use com.minigithub.common#Username
-use com.minigithub.common#RepoName
-use com.minigithub.common#LongText
-use com.minigithub.common#Url
-use com.minigithub.common#RepoVisibility
-use com.minigithub.common#CollaboratorRole
-use com.minigithub.common#PaginationMeta
+
 use com.minigithub.common#BadRequestError
-use com.minigithub.common#UnauthorizedError
-use com.minigithub.common#ForbiddenError
-use com.minigithub.common#NotFoundError
+use com.minigithub.common#CollaboratorRole
 use com.minigithub.common#ConflictError
+use com.minigithub.common#ForbiddenError
 use com.minigithub.common#InternalServerError
+use com.minigithub.common#NotFoundError
+use com.minigithub.common#PaginationMeta
+use com.minigithub.common#RepoName
+use com.minigithub.common#RepoScopedInputMixin
+use com.minigithub.common#RepoVisibility
+use com.minigithub.common#UnauthorizedError
+use com.minigithub.common#Url
+use com.minigithub.common#Username
+use com.minigithub.common#Uuid
 
 // ─── Estructuras de Repositorio ───────────────────────────────
-
 structure RepositoryDTO {
     @required
     id: Uuid
@@ -65,10 +65,9 @@ list RepositoryList {
 }
 
 // ─── HU-07: Listar repositorios del usuario ───────────────────
-
 @http(method: "GET", uri: "/v1/repos", code: 200)
 @readonly
-@documentation("Lista los repositorios del usuario autenticado. RF02.4")
+@documentation("Lista los repositorios del usuario autenticado.")
 operation ListMyRepositories {
     input: ListMyRepositoriesInput
     output: ListMyRepositoriesOutput
@@ -106,9 +105,8 @@ structure ListRepositoriesBody {
 }
 
 // ─── HU-06: Crear repositorio ─────────────────────────────────
-
 @http(method: "POST", uri: "/v1/repos", code: 201)
-@documentation("Crea un repositorio nuevo para el usuario autenticado. RF02.1")
+@documentation("Crea un repositorio nuevo para el usuario autenticado.")
 operation CreateRepository {
     input: CreateRepositoryInput
     output: CreateRepositoryOutput
@@ -148,10 +146,9 @@ structure CreateRepositoryOutput {
 }
 
 // ─── Obtener repositorio ──────────────────────────────────────
-
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}", code: 200)
 @readonly
-@documentation("Obtiene los datos de un repositorio. RF02.4")
+@documentation("Obtiene los datos de un repositorio.")
 operation GetRepository {
     input: GetRepositoryInput
     output: GetRepositoryOutput
@@ -180,9 +177,8 @@ structure GetRepositoryOutput {
 }
 
 // ─── HU-08: Actualizar repositorio ───────────────────────────
-
 @http(method: "PATCH", uri: "/v1/repos/{owner}/{repo}", code: 200)
-@documentation("Actualiza descripción, visibilidad u opciones del repositorio. Solo el owner. RF02.3")
+@documentation("Actualiza descripción, visibilidad u opciones del repositorio. Solo el owner.")
 operation UpdateRepository {
     input: UpdateRepositoryInput
     output: UpdateRepositoryOutput
@@ -223,10 +219,9 @@ structure UpdateRepositoryOutput {
 }
 
 // ─── HU-09: Eliminar repositorio ─────────────────────────────
-
 @http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}", code: 204)
 @idempotent
-@documentation("Elimina el repositorio y todos sus datos. Solo el owner. RF02.2")
+@documentation("Elimina el repositorio y todos sus datos. Solo el owner.")
 operation DeleteRepository {
     input: DeleteRepositoryInput
     output: Unit
@@ -248,8 +243,74 @@ structure DeleteRepositoryInput {
     repo: RepoName
 }
 
-// ─── Archivos: listar contenidos ──────────────────────────────
+// ─── HU-09: Fork de repositorio público ──────────────────────
+@http(method: "POST", uri: "/v1/repos/{owner}/{repo}/forks", code: 201)
+@documentation("Crea un fork de un repositorio público en la cuenta del usuario autenticado.")
+operation ForkRepository {
+    input: ForkRepositoryInput
+    output: ForkRepositoryOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        ConflictError
+        InternalServerError
+    ]
+}
 
+structure ForkRepositoryInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @httpPayload
+    body: ForkRepositoryBody
+}
+
+structure ForkRepositoryBody {
+    // Opcional: nombre del nuevo fork
+    name: RepoName
+
+    // Opcional: organización/owner destino
+    targetOwner: String
+}
+
+structure ForkRepositoryOutput {
+    @required
+    @httpPayload
+    body: RepositoryDTO
+}
+
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/forks", code: 200)
+@readonly
+@documentation("Lista los forks de un repositorio.")
+operation ListRepositoryForks {
+    input: RepoScopeInput
+    output: ListRepositoryForksOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure ListRepositoryForksOutput {
+    @required
+    @httpPayload
+    body: ListRepositoryForksBody
+}
+
+structure ListRepositoryForksBody {
+    @required
+    repositories: RepositoryList
+}
+
+// ─── Archivos: listar contenidos ──────────────────────────────
 structure FileEntryDTO {
     @required
     name: String
@@ -274,7 +335,7 @@ structure FileEntryDTO {
 }
 
 enum FileType {
-    FILE      = "file"
+    FILE = "file"
     DIRECTORY = "directory"
 }
 
@@ -282,9 +343,9 @@ list FileEntryList {
     member: FileEntryDTO
 }
 
-@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 200)
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/contents/{filePath+}", code: 200)
 @readonly
-@documentation("Lista archivos y carpetas de una ruta del repositorio. RF03.3")
+@documentation("Lista archivos y carpetas de una ruta del repositorio.")
 operation GetRepoContents {
     input: GetRepoContentsInput
     output: GetRepoContentsOutput
@@ -325,10 +386,9 @@ structure GetRepoContentsBody {
 }
 
 // ─── Archivos: subir ─────────────────────────────────────────
-
-@http(method: "PUT", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 201)
+@http(method: "PUT", uri: "/v1/repos/{owner}/{repo}/contents/{filePath+}", code: 201)
 @idempotent
-@documentation("Sube o actualiza un archivo en el repositorio. RF03.1")
+@documentation("Sube o actualiza un archivo en el repositorio.")
 operation UploadFile {
     input: UploadFileInput
     output: UploadFileOutput
@@ -377,10 +437,9 @@ structure UploadFileOutput {
 }
 
 // ─── Archivos: eliminar ───────────────────────────────────────
-
-@http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 204)
+@http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/contents/{filePath+}", code: 204)
 @idempotent
-@documentation("Elimina un archivo generando un commit de borrado. RF03.5")
+@documentation("Elimina un archivo generando un commit de borrado.")
 operation DeleteFile {
     input: DeleteFileInput
     output: Unit
@@ -416,10 +475,9 @@ structure DeleteFileInput {
 }
 
 // ─── Archivos: descargar ZIP ──────────────────────────────────
-
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/archive", code: 200)
 @readonly
-@documentation("Descarga el repositorio completo en ZIP. RF03.2")
+@documentation("Descarga el repositorio completo en ZIP.")
 operation DownloadArchive {
     input: DownloadArchiveInput
     output: DownloadArchiveOutput
@@ -455,7 +513,6 @@ structure DownloadArchiveOutput {
 }
 
 // ─── Branches ─────────────────────────────────────────────────
-
 structure BranchDTO {
     @required
     name: String
@@ -473,7 +530,7 @@ list BranchList {
 
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/branches", code: 200)
 @readonly
-@documentation("Lista todas las ramas del repositorio. RF02.5")
+@documentation("Lista todas las ramas del repositorio.")
 operation ListBranches {
     input: RepoScopeInput
     output: ListBranchesOutput
@@ -485,7 +542,7 @@ operation ListBranches {
     ]
 }
 
-structure RepoScopeInput {
+structure RepoScopeInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -506,8 +563,42 @@ structure ListBranchesBody {
     branches: BranchList
 }
 
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/branches/{branch}", code: 200)
+@readonly
+@documentation("Obtiene el detalle de una rama específica.")
+operation GetBranch {
+    input: GetBranchInput
+    output: GetBranchOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure GetBranchInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @required
+    @httpLabel
+    branch: String
+}
+
+structure GetBranchOutput {
+    @required
+    @httpPayload
+    body: BranchDTO
+}
+
 @http(method: "POST", uri: "/v1/repos/{owner}/{repo}/branches", code: 201)
-@documentation("Crea una rama nueva a partir de otra existente. RF02.5")
+@documentation("Crea una rama nueva a partir de otra existente.")
 operation CreateBranch {
     input: CreateBranchInput
     output: CreateBranchOutput
@@ -552,7 +643,7 @@ structure CreateBranchOutput {
 
 @http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/branches/{branch}", code: 204)
 @idempotent
-@documentation("Elimina una rama (no puede ser la rama por defecto). RF02.5")
+@documentation("Elimina una rama (no puede ser la rama por defecto).")
 operation DeleteBranch {
     input: DeleteBranchInput
     output: Unit
@@ -580,10 +671,9 @@ structure DeleteBranchInput {
 }
 
 // ─── HU-23: Stars ─────────────────────────────────────────────
-
 @http(method: "PUT", uri: "/v1/repos/{owner}/{repo}/star", code: 204)
 @idempotent
-@documentation("Da estrella a un repositorio. RF06.1")
+@documentation("Da estrella a un repositorio.")
 operation StarRepository {
     input: RepoScopeInput
     output: Unit
@@ -596,7 +686,7 @@ operation StarRepository {
 
 @http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/star", code: 204)
 @idempotent
-@documentation("Quita la estrella de un repositorio. RF06.1")
+@documentation("Quita la estrella de un repositorio.")
 operation UnstarRepository {
     input: RepoScopeInput
     output: Unit
@@ -607,8 +697,33 @@ operation UnstarRepository {
     ]
 }
 
-// ─── HU-22: Colaboradores ─────────────────────────────────────
+@http(method: "PUT", uri: "/v1/user/starred/{owner}/{repo}", code: 204)
+@idempotent
+@documentation("Da estrella a un repositorio con ruta.")
+operation StarRepositoryForAuthenticatedUser {
+    input: RepoScopeInput
+    output: Unit
+    errors: [
+        UnauthorizedError
+        NotFoundError
+        InternalServerError
+    ]
+}
 
+@http(method: "DELETE", uri: "/v1/user/starred/{owner}/{repo}", code: 204)
+@idempotent
+@documentation("Quita estrella a un repositorio con ruta.")
+operation UnstarRepositoryForAuthenticatedUser {
+    input: RepoScopeInput
+    output: Unit
+    errors: [
+        UnauthorizedError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+// ─── HU-22: Colaboradores ─────────────────────────────────────
 structure CollaboratorDTO {
     @required
     userId: Uuid
@@ -631,7 +746,7 @@ list CollaboratorList {
 
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/collaborators", code: 200)
 @readonly
-@documentation("Lista colaboradores y sus roles. RF06.2")
+@documentation("Lista colaboradores y sus roles.")
 operation ListCollaborators {
     input: RepoScopeInput
     output: ListCollaboratorsOutput
@@ -654,9 +769,58 @@ structure ListCollaboratorsBody {
     collaborators: CollaboratorList
 }
 
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/collaborators/{collaboratorUsername}", code: 200)
+@readonly
+@documentation("Obtiene detalle de un colaborador específico.")
+operation GetCollaborator {
+    input: CollaboratorScopeInput
+    output: GetCollaboratorOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure GetCollaboratorOutput {
+    @required
+    @httpPayload
+    body: CollaboratorDTO
+}
+
+structure CollaboratorScopeInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @required
+    @httpLabel
+    collaboratorUsername: Username
+}
+
+@http(method: "PUT", uri: "/v1/repos/{owner}/{repo}/collaborators/{collaboratorUsername}", code: 204)
+@idempotent
+@documentation("Agrega o confirma un colaborador por username.")
+operation AddCollaboratorByUsername {
+    input: CollaboratorScopeInput
+    output: Unit
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        ConflictError
+        InternalServerError
+    ]
+}
+
 @http(method: "POST", uri: "/v1/repos/{owner}/{repo}/collaborators", code: 201)
-@documentation("Invita a un colaborador con un rol. RF06.2")
-operation AddCollaborator {
+@documentation("Invita a un colaborador con un rol.")
+operation AddCollaboratorWithRole {
     input: AddCollaboratorInput
     output: AddCollaboratorOutput
     errors: [
@@ -698,7 +862,7 @@ structure AddCollaboratorOutput {
 }
 
 @http(method: "PATCH", uri: "/v1/repos/{owner}/{repo}/collaborators/{collaboratorUsername}", code: 200)
-@documentation("Cambia el rol de un colaborador existente. RF06.2")
+@documentation("Cambia el rol de un colaborador existente.")
 operation UpdateCollaboratorRole {
     input: UpdateCollaboratorRoleInput
     output: UpdateCollaboratorRoleOutput
@@ -742,7 +906,7 @@ structure UpdateCollaboratorRoleOutput {
 
 @http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/collaborators/{collaboratorUsername}", code: 204)
 @idempotent
-@documentation("Elimina un colaborador del repositorio. RF06.2")
+@documentation("Elimina un colaborador del repositorio.")
 operation RemoveCollaborator {
     input: RemoveCollaboratorInput
     output: Unit

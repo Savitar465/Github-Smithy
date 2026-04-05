@@ -62,6 +62,17 @@ enum CollaboratorRole {
     REPORTER  = "reporter"
 }
 
+// ─── Mixins compartidos ──────────────────────────────────────
+
+@mixin
+structure RepoScopedInputMixin {
+    @required
+    owner: Username
+
+    @required
+    repo: RepoName
+}
+
 // ─── Paginación ───────────────────────────────────────────────
 
 structure PaginationMeta {
@@ -127,4 +138,22 @@ structure UnprocessableEntityError {
 structure InternalServerError {
     @required
     message: String
+}
+
+
+// ─── Tipos para gestión de archivos ──────────────────────────
+
+/// Tipo de objeto Git (archivo o directorio)
+enum GitObjectType {
+    FILE      = "file"
+    DIRECTORY = "dir"
+}
+
+/// Identidad para autor/committer de commits
+structure Identity {
+    @required
+    name: String
+
+    @required
+    email: Email
 }

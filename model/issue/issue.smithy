@@ -1,24 +1,25 @@
 $version: "2"
 
 namespace com.minigithub.issue
-use com.minigithub.common#Uuid
-use com.minigithub.common#Username
-use com.minigithub.common#RepoName
-use com.minigithub.common#Title
-use com.minigithub.common#HexColor
-use com.minigithub.common#IssueState
-use com.minigithub.common#PrStatus
-use com.minigithub.common#PaginationMeta
+
 use com.minigithub.common#BadRequestError
-use com.minigithub.common#UnauthorizedError
-use com.minigithub.common#ForbiddenError
-use com.minigithub.common#NotFoundError
 use com.minigithub.common#ConflictError
-use com.minigithub.common#UnprocessableEntityError
+use com.minigithub.common#ForbiddenError
+use com.minigithub.common#HexColor
 use com.minigithub.common#InternalServerError
+use com.minigithub.common#IssueState
+use com.minigithub.common#NotFoundError
+use com.minigithub.common#PaginationMeta
+use com.minigithub.common#PrStatus
+use com.minigithub.common#RepoName
+use com.minigithub.common#RepoScopedInputMixin
+use com.minigithub.common#Title
+use com.minigithub.common#UnauthorizedError
+use com.minigithub.common#UnprocessableEntityError
+use com.minigithub.common#Username
+use com.minigithub.common#Uuid
 
 // ─── Tipos de soporte ─────────────────────────────────────────
-
 structure AuthorSummary {
     @required
     id: Uuid
@@ -28,7 +29,6 @@ structure AuthorSummary {
 }
 
 // ─── Labels ───────────────────────────────────────────────────
-
 structure LabelDTO {
     @required
     id: Uuid
@@ -55,7 +55,6 @@ list LabelNameList {
 }
 
 // ─── Issues ───────────────────────────────────────────────────
-
 structure IssueDTO {
     @required
     id: Uuid
@@ -99,10 +98,9 @@ list IssueList {
 }
 
 // ─── Listar issues ────────────────────────────────────────────
-
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/issues", code: 200)
 @readonly
-@documentation("Lista los issues de un repositorio con filtros opcionales. RF04")
+@documentation("Lista los issues de un repositorio con filtros opcionales.")
 operation ListIssues {
     input: ListIssuesInput
     output: ListIssuesOutput
@@ -156,9 +154,8 @@ structure ListIssuesBody {
 }
 
 // ─── Crear issue ─────────────────────────────────────────────
-
 @http(method: "POST", uri: "/v1/repos/{owner}/{repo}/issues", code: 201)
-@documentation("Crea un issue en el repositorio. RF04.1")
+@documentation("Crea un issue en el repositorio.")
 operation CreateIssue {
     input: CreateIssueInput
     output: CreateIssueOutput
@@ -203,10 +200,9 @@ structure CreateIssueOutput {
 }
 
 // ─── Obtener issue ────────────────────────────────────────────
-
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/issues/{issueNumber}", code: 200)
 @readonly
-@documentation("Obtiene un issue por su número secuencial. RF04")
+@documentation("Obtiene un issue por su número secuencial.")
 operation GetIssue {
     input: GetIssueInput
     output: GetIssueOutput
@@ -229,7 +225,7 @@ structure GetIssueInput {
 
     @required
     @httpLabel
-    issueNumber: String
+    issueNumber: Integer
 }
 
 structure GetIssueOutput {
@@ -239,9 +235,8 @@ structure GetIssueOutput {
 }
 
 // ─── Actualizar issue ─────────────────────────────────────────
-
 @http(method: "PATCH", uri: "/v1/repos/{owner}/{repo}/issues/{issueNumber}", code: 200)
-@documentation("Actualiza título, body, estado, assignee o labels. RF04.4, RF04.5")
+@documentation("Actualiza título, body, estado, assignee o labels.")
 operation UpdateIssue {
     input: UpdateIssueInput
     output: UpdateIssueOutput
@@ -265,7 +260,7 @@ structure UpdateIssueInput {
 
     @required
     @httpLabel
-    issueNumber: String
+    issueNumber: Integer
 
     @required
     @httpPayload
@@ -287,7 +282,6 @@ structure UpdateIssueOutput {
 }
 
 // ─── Comentarios ──────────────────────────────────────────────
-
 structure CommentDTO {
     @required
     id: Uuid
@@ -315,7 +309,7 @@ list CommentList {
 
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/issues/{issueNumber}/comments", code: 200)
 @readonly
-@documentation("Lista los comentarios de un issue. RF04.3")
+@documentation("Lista los comentarios de un issue.")
 operation ListIssueComments {
     input: IssueCommentsInput
     output: ListIssueCommentsOutput
@@ -338,7 +332,7 @@ structure IssueCommentsInput {
 
     @required
     @httpLabel
-    issueNumber: String
+    issueNumber: Integer
 }
 
 structure ListIssueCommentsOutput {
@@ -353,7 +347,7 @@ structure ListIssueCommentsBody {
 }
 
 @http(method: "POST", uri: "/v1/repos/{owner}/{repo}/issues/{issueNumber}/comments", code: 201)
-@documentation("Agrega un comentario a un issue. RF04.3")
+@documentation("Agrega un comentario a un issue.")
 operation CreateIssueComment {
     input: CreateIssueCommentInput
     output: CreateIssueCommentOutput
@@ -377,7 +371,7 @@ structure CreateIssueCommentInput {
 
     @required
     @httpLabel
-    issueNumber: String
+    issueNumber: Integer
 
     @required
     @httpPayload
@@ -396,11 +390,134 @@ structure CreateIssueCommentOutput {
     body: CommentDTO
 }
 
-// ─── Labels de repositorio ────────────────────────────────────
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/issues/comments", code: 200)
+@readonly
+@documentation("Lista comentarios de issues a nivel repositorio.")
+operation ListRepositoryIssueComments {
+    input: ListRepositoryIssueCommentsInput
+    output: ListIssueCommentsOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
 
+structure ListRepositoryIssueCommentsInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @httpQuery("page")
+    @range(min: 1)
+    page: Integer
+
+    @httpQuery("perPage")
+    @range(min: 1, max: 100)
+    perPage: Integer
+}
+
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/issues/comments/{commentId}", code: 200)
+@readonly
+@documentation("Obtiene un comentario de issue por su ID.")
+operation GetIssueComment {
+    input: IssueCommentByIdInput
+    output: GetIssueCommentOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure GetIssueCommentOutput {
+    @required
+    @httpPayload
+    body: CommentDTO
+}
+
+@http(method: "PATCH", uri: "/v1/repos/{owner}/{repo}/issues/comments/{commentId}", code: 200)
+@documentation("Actualiza el cuerpo de un comentario de issue.")
+operation UpdateIssueComment {
+    input: UpdateIssueCommentInput
+    output: UpdateIssueCommentOutput
+    errors: [
+        BadRequestError
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure UpdateIssueCommentInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @required
+    @httpLabel
+    commentId: Uuid
+
+    @required
+    @httpPayload
+    body: UpdateIssueCommentBody
+}
+
+structure UpdateIssueCommentBody {
+    @required
+    @length(min: 1)
+    body: String
+}
+
+structure UpdateIssueCommentOutput {
+    @required
+    @httpPayload
+    body: CommentDTO
+}
+
+@http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/issues/comments/{commentId}", code: 204)
+@idempotent
+@documentation("Elimina un comentario de issue por su ID.")
+operation DeleteIssueComment {
+    input: IssueCommentByIdInput
+    output: Unit
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure IssueCommentByIdInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @required
+    @httpLabel
+    commentId: Uuid
+}
+
+// ─── Labels de repositorio ────────────────────────────────────
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/labels", code: 200)
 @readonly
-@documentation("Lista los labels disponibles en el repositorio. RF04.2")
+@documentation("Lista los labels disponibles en el repositorio.")
 operation ListLabels {
     input: RepoOnlyInput
     output: ListLabelsOutput
@@ -412,7 +529,7 @@ operation ListLabels {
     ]
 }
 
-structure RepoOnlyInput {
+structure RepoOnlyInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -434,7 +551,7 @@ structure ListLabelsBody {
 }
 
 @http(method: "POST", uri: "/v1/repos/{owner}/{repo}/labels", code: 201)
-@documentation("Crea un label nuevo en el repositorio. RF04.2")
+@documentation("Crea un label nuevo en el repositorio.")
 operation CreateLabel {
     input: CreateLabelInput
     output: CreateLabelOutput
@@ -481,7 +598,6 @@ structure CreateLabelOutput {
 }
 
 // ─── Pull Requests ────────────────────────────────────────────
-
 structure PullRequestDTO {
     @required
     id: Uuid
@@ -530,7 +646,7 @@ list PrList {
 
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/pulls", code: 200)
 @readonly
-@documentation("Lista los Pull Requests del repositorio. HU-19")
+@documentation("Lista los Pull Requests del repositorio.")
 operation ListPullRequests {
     input: ListPullRequestsInput
     output: ListPullRequestsOutput
@@ -567,7 +683,7 @@ structure ListPullRequestsBody {
 }
 
 @http(method: "POST", uri: "/v1/repos/{owner}/{repo}/pulls", code: 201)
-@documentation("Crea un Pull Request entre dos ramas. HU-19, RF04.1")
+@documentation("Crea un Pull Request entre dos ramas.")
 operation CreatePullRequest {
     input: CreatePullRequestInput
     output: CreatePullRequestOutput
@@ -616,7 +732,7 @@ structure CreatePullRequestOutput {
 
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/pulls/{prNumber}", code: 200)
 @readonly
-@documentation("Obtiene el detalle de un PR. HU-20")
+@documentation("Obtiene el detalle de un PR.")
 operation GetPullRequest {
     input: GetPullRequestInput
     output: GetPullRequestOutput
@@ -639,7 +755,7 @@ structure GetPullRequestInput {
 
     @required
     @httpLabel
-    prNumber: String
+    prNumber: Integer
 }
 
 structure GetPullRequestOutput {
@@ -649,13 +765,13 @@ structure GetPullRequestOutput {
 }
 
 enum ReviewDecision {
-    APPROVED          = "approved"
+    APPROVED = "approved"
     CHANGES_REQUESTED = "changes_requested"
-    COMMENTED         = "commented"
+    COMMENTED = "commented"
 }
 
 @http(method: "PATCH", uri: "/v1/repos/{owner}/{repo}/pulls/{prNumber}/review", code: 200)
-@documentation("Aprueba o solicita cambios en un PR. HU-20, RF04.2")
+@documentation("Aprueba o solicita cambios en un PR.")
 operation ReviewPullRequest {
     input: ReviewPullRequestInput
     output: ReviewPullRequestOutput
@@ -679,7 +795,7 @@ structure ReviewPullRequestInput {
 
     @required
     @httpLabel
-    prNumber: String
+    prNumber: Integer
 
     @required
     @httpPayload
@@ -700,13 +816,13 @@ structure ReviewPullRequestOutput {
 }
 
 enum MergeStrategy {
-    MERGE  = "merge"
+    MERGE = "merge"
     SQUASH = "squash"
     REBASE = "rebase"
 }
 
 @http(method: "POST", uri: "/v1/repos/{owner}/{repo}/pulls/{prNumber}/merge", code: 200)
-@documentation("Ejecuta el merge de un PR aprobado. HU-21, RF04.3")
+@documentation("Ejecuta el merge de un PR aprobado y sin conflictos.")
 operation MergePullRequest {
     input: MergePullRequestInput
     output: MergePullRequestOutput
@@ -732,7 +848,7 @@ structure MergePullRequestInput {
 
     @required
     @httpLabel
-    prNumber: String
+    prNumber: Integer
 
     @required
     @httpPayload
@@ -751,4 +867,156 @@ structure MergePullRequestOutput {
     @required
     @httpPayload
     body: PullRequestDTO
+}
+
+// ─── Comentarios de Pull Request ─────────────────────────────
+structure PullRequestCommentDTO {
+    @required
+    id: Uuid
+
+    @required
+    pullRequestId: Uuid
+
+    @required
+    body: String
+
+    filePath: String
+
+    @range(min: 1)
+    lineNumber: Integer
+
+    @required
+    author: AuthorSummary
+
+    @required
+    createdAt: String
+
+    @required
+    updatedAt: String
+}
+
+list PullRequestCommentList {
+    member: PullRequestCommentDTO
+}
+
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/pulls/{prNumber}/comments", code: 200)
+@readonly
+@documentation("Lista historial de comentarios de un PR.")
+operation ListPullRequestComments {
+    input: PullRequestCommentsInput
+    output: ListPullRequestCommentsOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+@http(method: "POST", uri: "/v1/repos/{owner}/{repo}/pulls/{prNumber}/comments", code: 201)
+@documentation("Agrega un comentario general o por línea a un PR.")
+operation CreatePullRequestComment {
+    input: CreatePullRequestCommentInput
+    output: CreatePullRequestCommentOutput
+    errors: [
+        BadRequestError
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure PullRequestCommentsInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @required
+    @httpLabel
+    prNumber: Integer
+}
+
+structure ListPullRequestCommentsOutput {
+    @required
+    @httpPayload
+    body: ListPullRequestCommentsBody
+}
+
+structure ListPullRequestCommentsBody {
+    @required
+    comments: PullRequestCommentList
+}
+
+structure CreatePullRequestCommentInput {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    @required
+    @httpLabel
+    prNumber: Integer
+
+    @required
+    @httpPayload
+    body: CreatePullRequestCommentBody
+}
+
+structure CreatePullRequestCommentBody {
+    @required
+    @length(min: 1)
+    body: String
+
+    filePath: String
+
+    @range(min: 1)
+    lineNumber: Integer
+}
+
+structure CreatePullRequestCommentOutput {
+    @required
+    @httpPayload
+    body: PullRequestCommentDTO
+}
+
+// ─── Mergeabilidad de Pull Request ───────────────────────────
+structure PullRequestMergeabilityDTO {
+    @required
+    prNumber: Integer
+
+    @required
+    mergeable: Boolean
+
+    @required
+    hasConflicts: Boolean
+
+    reason: String
+}
+
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/pulls/{prNumber}/mergeability", code: 200)
+@readonly
+@documentation("Evalúa conflictos y mergeabilidad de un PR antes del merge.")
+operation GetPullRequestMergeability {
+    input: GetPullRequestInput
+    output: GetPullRequestMergeabilityOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure GetPullRequestMergeabilityOutput {
+    @required
+    @httpPayload
+    body: PullRequestMergeabilityDTO
 }
