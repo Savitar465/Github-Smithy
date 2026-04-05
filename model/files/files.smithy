@@ -2,25 +2,28 @@ $version: "2"
 
 namespace com.minigithub.files
 
-use com.minigithub.common#Uuid
-use com.minigithub.common#Username
+use aws.protocols#restJson1
+use com.minigithub.common#BadRequestError
+use com.minigithub.common#ConflictError
 use com.minigithub.common#Email
-use com.minigithub.common#RepoName
-use com.minigithub.common#Url
+use com.minigithub.common#ForbiddenError
 use com.minigithub.common#GitObjectType
 use com.minigithub.common#Identity
-use com.minigithub.common#PaginationMeta
-use com.minigithub.common#BadRequestError
-use com.minigithub.common#UnauthorizedError
-use com.minigithub.common#ForbiddenError
-use com.minigithub.common#NotFoundError
-use com.minigithub.common#ConflictError
 use com.minigithub.common#InternalServerError
+use com.minigithub.common#NotFoundError
+use com.minigithub.common#PaginationMeta
+use com.minigithub.common#RepoName
+use com.minigithub.common#RepoScopedInputMixin
+use com.minigithub.common#UnauthorizedError
+use com.minigithub.common#Url
+use com.minigithub.common#Username
+
+@length(max: 10485760)
+blob FileBytes
 
 // ═══════════════════════════════════════════════════════════════
 // ESTRUCTURAS DE ARCHIVOS
 // ═══════════════════════════════════════════════════════════════
-
 /// Contenido de archivo (respuesta GET para archivos)
 structure FileContentDTO {
     @required
@@ -87,7 +90,6 @@ structure FileOperationResponse {
 // ═══════════════════════════════════════════════════════════════
 // ESTRUCTURAS DE COMMITS
 // ═══════════════════════════════════════════════════════════════
-
 /// Firma de commit (autor o committer)
 structure CommitSignature {
     @required
@@ -196,8 +198,7 @@ structure CompareDTO {
 // ═══════════════════════════════════════════════════════════════
 // HU-13: NAVEGACIÓN DE ARCHIVOS Y CARPETAS
 // ═══════════════════════════════════════════════════════════════
-
-@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 200)
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/contents/{filePath+}", code: 200)
 @readonly
 @documentation("Obtiene el contenido de un archivo o lista el contenido de un directorio. RF03.3")
 operation GetFileContent {
@@ -211,7 +212,7 @@ operation GetFileContent {
     ]
 }
 
-structure GetFileContentInput {
+structure GetFileContentInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -244,12 +245,44 @@ structure GetFileContentBody {
     entries: DirectoryEntryList
 }
 
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/contents", code: 200)
+@readonly
+@documentation("Lista el contenido de una ruta del repositorio usando query path. HU-13")
+operation GetRepositoryContents {
+    input: GetRepositoryContentsInput
+    output: GetFileContentOutput
+    errors: [
+        UnauthorizedError
+        ForbiddenError
+        NotFoundError
+        InternalServerError
+    ]
+}
+
+structure GetRepositoryContentsInput with [RepoScopedInputMixin] {
+    @required
+    @httpLabel
+    owner: Username
+
+    @required
+    @httpLabel
+    repo: RepoName
+
+    /// Ruta relativa opcional. Si se omite, lista la raíz.
+    @httpQuery("path")
+    path: String
+
+    /// Branch, tag o commit SHA
+    @httpQuery("ref")
+    ref: String
+}
+
 // ═══════════════════════════════════════════════════════════════
 // HU-14: SUBIR ARCHIVOS DESDE LA WEB
 // ═══════════════════════════════════════════════════════════════
-
-@http(method: "POST", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 201)
-@documentation("Crea un archivo nuevo en el repositorio. RF03.1")
+@http(method: "PUT", uri: "/v1/repos/{owner}/{repo}/contents/{filePath+}", code: 201)
+@idempotent
+@documentation("Sube un archivo al repositorio (create/update por path). RF03.1")
 operation CreateFile {
     input: CreateFileInput
     output: CreateFileOutput
@@ -263,7 +296,7 @@ operation CreateFile {
     ]
 }
 
-structure CreateFileInput {
+structure CreateFileInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -282,9 +315,9 @@ structure CreateFileInput {
 }
 
 structure CreateFileBody {
-    /// Contenido del archivo en base64
+    /// Contenido binario del archivo (máximo 10MB)
     @required
-    content: String
+    content: FileBytes
 
     /// Mensaje del commit
     @required
@@ -308,9 +341,7 @@ structure CreateFileOutput {
 }
 
 // ─────────────────────────────────────────────────────────────────
-
-@http(method: "PUT", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 200)
-@idempotent
+@http(method: "PATCH", uri: "/v1/repos/{owner}/{repo}/contents/{filePath+}", code: 200)
 @documentation("Actualiza un archivo existente en el repositorio. RF03.1")
 operation UpdateFile {
     input: UpdateFileInput
@@ -325,7 +356,7 @@ operation UpdateFile {
     ]
 }
 
-structure UpdateFileInput {
+structure UpdateFileInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -348,9 +379,9 @@ structure UpdateFileBody {
     @required
     sha: String
 
-    /// Nuevo contenido en base64
+    /// Nuevo contenido binario (máximo 10MB)
     @required
-    content: String
+    content: FileBytes
 
     /// Mensaje del commit
     @required
@@ -377,8 +408,7 @@ structure UpdateFileOutput {
 // ═══════════════════════════════════════════════════════════════
 // HU-15: ELIMINAR ARCHIVOS DESDE LA WEB
 // ═══════════════════════════════════════════════════════════════
-
-@http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/contents/{filePath}", code: 200)
+@http(method: "DELETE", uri: "/v1/repos/{owner}/{repo}/contents/{filePath+}", code: 200)
 @idempotent
 @documentation("Elimina un archivo generando un commit de borrado. RF03.5")
 operation DeleteFile {
@@ -393,7 +423,7 @@ operation DeleteFile {
     ]
 }
 
-structure DeleteFileInput {
+structure DeleteFileInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -436,7 +466,6 @@ structure DeleteFileResponseBody {
 // ═══════════════════════════════════════════════════════════════
 // HU-17: CREAR CARPETAS EN EL REPOSITORIO
 // ═══════════════════════════════════════════════════════════════
-
 @http(method: "POST", uri: "/v1/repos/{owner}/{repo}/folders", code: 201)
 @documentation("Crea una carpeta nueva con .gitkeep. RF03.4")
 operation CreateFolder {
@@ -452,7 +481,7 @@ operation CreateFolder {
     ]
 }
 
-structure CreateFolderInput {
+structure CreateFolderInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -491,10 +520,9 @@ structure CreateFolderOutput {
 // ═══════════════════════════════════════════════════════════════
 // HU-16: DESCARGAR ARCHIVOS DEL REPOSITORIO
 // ═══════════════════════════════════════════════════════════════
-
-@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/raw/{filePath}", code: 200)
+@http(method: "GET", uri: "/v1/repos/{owner}/{repo}/download", code: 200)
 @readonly
-@documentation("Descarga el contenido raw de un archivo. RF03.2")
+@documentation("Descarga un archivo individual del repositorio. RF03.2")
 operation GetRawFile {
     input: GetRawFileInput
     output: GetRawFileOutput
@@ -506,7 +534,7 @@ operation GetRawFile {
     ]
 }
 
-structure GetRawFileInput {
+structure GetRawFileInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -516,8 +544,8 @@ structure GetRawFileInput {
     repo: RepoName
 
     @required
-    @httpLabel
-    filePath: String
+    @httpQuery("path")
+    path: String
 
     /// Branch, tag o commit SHA
     @httpQuery("ref")
@@ -532,12 +560,15 @@ structure GetRawFileOutput {
     @required
     @httpHeader("Content-Disposition")
     contentDisposition: String
+
+    @required
+    @httpPayload
+    body: FileBytes
 }
 
 // ═══════════════════════════════════════════════════════════════
 // HU-18: VER HISTORIAL DE COMMITS
 // ═══════════════════════════════════════════════════════════════
-
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/commits", code: 200)
 @readonly
 @documentation("Lista el historial de commits del repositorio. HU-18")
@@ -552,7 +583,7 @@ operation ListCommits {
     ]
 }
 
-structure ListCommitsInput {
+structure ListCommitsInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -593,7 +624,6 @@ structure ListCommitsBody {
 }
 
 // ─────────────────────────────────────────────────────────────────
-
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/commits/{sha}", code: 200)
 @readonly
 @documentation("Obtiene el detalle de un commit específico. HU-18")
@@ -608,7 +638,7 @@ operation GetCommit {
     ]
 }
 
-structure GetCommitInput {
+structure GetCommitInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -637,7 +667,6 @@ structure GetCommitBody {
 }
 
 // ─────────────────────────────────────────────────────────────────
-
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/commits/{sha}/diff", code: 200)
 @readonly
 @documentation("Obtiene el diff de un commit en formato texto. HU-18")
@@ -652,7 +681,7 @@ operation GetCommitDiff {
     ]
 }
 
-structure GetCommitDiffInput {
+structure GetCommitDiffInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -679,7 +708,6 @@ structure GetCommitDiffOutput {
 // ═══════════════════════════════════════════════════════════════
 // HU-20: COMPARAR BRANCHES (para Pull Requests)
 // ═══════════════════════════════════════════════════════════════
-
 @http(method: "GET", uri: "/v1/repos/{owner}/{repo}/compare/{baseBranch}/{headBranch}", code: 200)
 @readonly
 @documentation("Compara dos branches mostrando commits y archivos cambiados. HU-20")
@@ -694,7 +722,7 @@ operation CompareCommits {
     ]
 }
 
-structure CompareCommitsInput {
+structure CompareCommitsInput with [RepoScopedInputMixin] {
     @required
     @httpLabel
     owner: Username
@@ -719,3 +747,25 @@ structure CompareCommitsOutput {
     @httpPayload
     body: CompareDTO
 }
+
+@title("Mini-GitHub Files API")
+@restJson1
+@httpBearerAuth
+@documentation("Servicio para contenido de archivos, commits, descargas y comparacion de branches.")
+service FilesApi {
+    version: "1.0.0"
+    operations: [
+        GetFileContent
+        GetRepositoryContents
+        CreateFile
+        UpdateFile
+        DeleteFile
+        CreateFolder
+        GetRawFile
+        ListCommits
+        GetCommit
+        GetCommitDiff
+        CompareCommits
+    ]
+}
+

@@ -2,9 +2,9 @@
 
 ## Resumen
 
-Este documento describe las APIs y modelos necesarios para implementar la gestión de archivos y operaciones Git en Mini-GitHub, basándose en la API de Gitea y **alineado con las historias de usuario definidas**.
+Este documento describe las APIs y modelos implementados para la gestión de archivos y operaciones Git en Mini-GitHub, basándose en la API de Gitea y **alineado con las historias de usuario definidas**.
 
-**Scope:** 17 operaciones (6 existentes + 10 nuevas + 1 mejorar)
+**Scope:** 11 operaciones en FilesApi + 7 operaciones relacionadas en RepoApi
 
 ---
 
@@ -12,8 +12,8 @@ Este documento describe las APIs y modelos necesarios para implementar la gesti�
 
 | HU | Título | Operaciones |
 |----|--------|-------------|
-| HU-09 | Fork de repositorio público | `ForkRepository`, `ListForks` |
-| HU-13 | Navegación de archivos y carpetas | `GetFileContent` |
+| HU-09 | Fork de repositorio público | `ForkRepository`, `ListRepositoryForks` |
+| HU-13 | Navegación de archivos y carpetas | `GetFileContent`, `GetRepositoryContents` |
 | HU-14 | Subir archivos desde la web | `CreateFile`, `UpdateFile` |
 | HU-15 | Eliminar archivos desde la web | `DeleteFile` |
 | HU-16 | Descargar archivos del repositorio | `GetRawFile`, `DownloadArchive` |
@@ -26,294 +26,56 @@ Este documento describe las APIs y modelos necesarios para implementar la gesti�
 
 ## 2. Requisitos Funcionales
 
-| ID | Requerimiento |
-|----|---------------|
-| RF02.5 | El sistema debe gestionar branches de repositorios |
-| RF02.6 | El sistema debe permitir hacer fork de repositorios públicos |
-| RF03.1 | El sistema debe permitir subir archivos a un repositorio |
-| RF03.2 | El sistema debe permitir descargar archivos de un repositorio |
-| RF03.3 | El sistema debe mostrar el contenido de archivos de texto |
-| RF03.4 | El sistema debe permitir crear carpetas |
-| RF03.5 | El sistema debe permitir eliminar archivos |
+| ID | Requerimiento | Operaciones |
+|----|---------------|-------------|
+| RF02.5 | El sistema debe gestionar branches de repositorios | `ListBranches`, `GetBranch`, `CreateBranch`, `DeleteBranch` |
+| RF02.6 | El sistema debe permitir hacer fork de repositorios públicos | `ForkRepository`, `ListRepositoryForks` |
+| RF03.1 | El sistema debe permitir subir archivos a un repositorio | `CreateFile`, `UpdateFile` |
+| RF03.2 | El sistema debe permitir descargar archivos de un repositorio | `GetRawFile`, `DownloadArchive` |
+| RF03.3 | El sistema debe mostrar el contenido de archivos de texto | `GetFileContent`, `GetRepositoryContents` |
+| RF03.4 | El sistema debe permitir crear carpetas | `CreateFolder` |
+| RF03.5 | El sistema debe permitir eliminar archivos | `DeleteFile` |
 
 ---
 
-## 3. APIs de Gitea - Referencia
+## 3. Operaciones Implementadas
 
-### 3.1 Contenido de Archivos
+### 3.1 FilesApi (files.smithy) - 11 operaciones
 
-#### GET - Obtener Contenido
-```
-GET /api/v1/repos/{owner}/{repo}/contents/{filepath}?ref={branch}
-```
+| Operación | Método | URI | HU | Descripción |
+|-----------|--------|-----|-----|-------------|
+| `GetFileContent` | GET | `/v1/repos/{owner}/{repo}/contents/{filePath+}` | HU-13 | Obtiene contenido de archivo o lista directorio |
+| `GetRepositoryContents` | GET | `/v1/repos/{owner}/{repo}/contents?path=` | HU-13 | Lista contenido usando query param |
+| `CreateFile` | PUT | `/v1/repos/{owner}/{repo}/contents/{filePath+}` | HU-14 | Crea archivo nuevo (idempotente) |
+| `UpdateFile` | PATCH | `/v1/repos/{owner}/{repo}/contents/{filePath+}` | HU-14 | Actualiza archivo existente |
+| `DeleteFile` | DELETE | `/v1/repos/{owner}/{repo}/contents/{filePath+}` | HU-15 | Elimina archivo con commit |
+| `CreateFolder` | POST | `/v1/repos/{owner}/{repo}/folders` | HU-17 | Crea carpeta con .gitkeep |
+| `GetRawFile` | GET | `/v1/repos/{owner}/{repo}/download?path=` | HU-16 | Descarga archivo raw |
+| `ListCommits` | GET | `/v1/repos/{owner}/{repo}/commits` | HU-18 | Lista historial de commits |
+| `GetCommit` | GET | `/v1/repos/{owner}/{repo}/commits/{sha}` | HU-18 | Obtiene detalle de commit |
+| `GetCommitDiff` | GET | `/v1/repos/{owner}/{repo}/commits/{sha}/diff` | HU-18 | Obtiene diff en texto |
+| `CompareCommits` | GET | `/v1/repos/{owner}/{repo}/compare/{baseBranch}/{headBranch}` | HU-20 | Compara dos branches |
 
-**Response:**
-```json
-{
-  "name": "README.md",
-  "path": "README.md",
-  "sha": "abc123...",
-  "type": "file",
-  "size": 1234,
-  "encoding": "base64",
-  "content": "VGhpcyBpcyB0aGUgY29udGVudA==",
-  "download_url": "...",
-  "html_url": "...",
-  "last_commit_sha": "def456..."
-}
-```
-
-**Tipos:** `file`, `dir`
-
----
-
-#### POST - Crear Archivo
-```
-POST /api/v1/repos/{owner}/{repo}/contents/{filepath}
-```
-
-**Request Body:**
-```json
-{
-  "content": "VGhpcyBpcyB0aGUgY29udGVudA==",
-  "message": "Add new file",
-  "branch": "main",
-  "author": { "name": "...", "email": "..." },
-  "committer": { "name": "...", "email": "..." }
-}
-```
-
-| Campo | Tipo | Requerido |
-|-------|------|-----------|
-| `content` | string (base64) | **Sí** |
-| `message` | string | **Sí** |
-| `branch` | string | No |
-| `author` | Identity | No |
-| `committer` | Identity | No |
-
----
-
-#### PUT - Actualizar Archivo
-```
-PUT /api/v1/repos/{owner}/{repo}/contents/{filepath}
-```
-
-**Request Body:**
-```json
-{
-  "sha": "abc123...",
-  "content": "VXBkYXRlZCBjb250ZW50",
-  "message": "Update file",
-  "branch": "main"
-}
-```
-
-| Campo | Tipo | Requerido |
-|-------|------|-----------|
-| `sha` | string | **Sí** (concurrencia) |
-| `content` | string (base64) | **Sí** |
-| `message` | string | **Sí** |
-
----
-
-#### DELETE - Eliminar Archivo
-```
-DELETE /api/v1/repos/{owner}/{repo}/contents/{filepath}
-```
-
-**Request Body:**
-```json
-{
-  "sha": "abc123...",
-  "message": "Delete file",
-  "branch": "main"
-}
-```
-
----
-
-### 3.2 Raw y Archive
-
-#### GET - Archivo Raw
-```
-GET /api/v1/repos/{owner}/{repo}/raw/{filepath}?ref={branch}
-```
-
-#### GET - Archive ZIP
-```
-GET /api/v1/repos/{owner}/{repo}/archive/{branch}.zip
-```
-
----
-
-### 3.3 Commits
-
-#### GET - Listar Commits
-```
-GET /api/v1/repos/{owner}/{repo}/commits?sha={branch}&page={n}&limit={n}
-```
-
-#### GET - Obtener Commit
-```
-GET /api/v1/repos/{owner}/{repo}/git/commits/{sha}
-```
-
-#### GET - Diff de Commit
-```
-GET /api/v1/repos/{owner}/{repo}/git/commits/{sha}.diff
-```
-
----
-
-### 3.4 Comparar Branches
-
-```
-GET /api/v1/repos/{owner}/{repo}/compare/{base}...{head}
-```
-
-**Response:**
-```json
-{
-  "commits": [...],
-  "total_commits": 5,
-  "files": [
-    { "filename": "...", "status": "modified", "additions": 10, "deletions": 5 }
-  ]
-}
-```
-
----
-
-### 3.5 Branches
-
-#### GET - Listar Branches
-```
-GET /api/v1/repos/{owner}/{repo}/branches
-```
-
-#### GET - Obtener Branch
-```
-GET /api/v1/repos/{owner}/{repo}/branches/{branch}
-```
-
-#### POST - Crear Branch
-```
-POST /api/v1/repos/{owner}/{repo}/branches
-```
-
-**Request Body:**
-```json
-{ "new_branch_name": "feature/new", "old_branch_name": "main" }
-```
-
-#### DELETE - Eliminar Branch
-```
-DELETE /api/v1/repos/{owner}/{repo}/branches/{branch}
-```
-
----
-
-### 3.6 Forks
-
-#### GET - Listar Forks
-```
-GET /api/v1/repos/{owner}/{repo}/forks
-```
-
-#### POST - Crear Fork
-```
-POST /api/v1/repos/{owner}/{repo}/forks
-```
-
-**Request Body:**
-```json
-{ "name": "my-fork" }
-```
-
----
-
-## 4. Estado Actual vs Requerido
-
-### 4.1 Operaciones en repo.smithy (Existentes)
-
-| Operación | Estado | Acción |
-|-----------|--------|--------|
-| `GetRepoContents` | Parcial | Mejorar (agregar sha, content) |
-| `UploadFile` | Existe | Reemplazar por CreateFile/UpdateFile |
-| `DeleteFile` | Parcial | Mejorar (sha en body) |
-| `DownloadArchive` | OK | Mantener |
-| `ListBranches` | OK | Mantener |
-| `CreateBranch` | OK | Mantener |
-| `DeleteBranch` | OK | Mantener |
-
-### 4.2 Operaciones Nuevas Requeridas
-
-| Operación | Ubicación | HU |
-|-----------|-----------|-----|
-| `GetFileContent` | files.smithy | HU-13 |
-| `CreateFile` | files.smithy | HU-14 |
-| `UpdateFile` | files.smithy | HU-14 |
-| `CreateFolder` | files.smithy | HU-17 |
-| `GetRawFile` | files.smithy | HU-16 |
-| `ListCommits` | files.smithy | HU-18 |
-| `GetCommit` | files.smithy | HU-18 |
-| `GetCommitDiff` | files.smithy | HU-18 |
-| `CompareCommits` | files.smithy | HU-20 |
-| `GetBranch` | repo.smithy | HU-19 |
-| `ForkRepository` | repo.smithy | HU-09 |
-| `ListForks` | repo.smithy | HU-09 |
-
----
-
-## 5. Operaciones Finales por Archivo
-
-### 5.1 files.smithy (NUEVO)
-
-| Operación | Método | URI | HU |
-|-----------|--------|-----|-----|
-| `GetFileContent` | GET | `/v1/repos/{owner}/{repo}/contents/{filePath}` | HU-13 |
-| `CreateFile` | POST | `/v1/repos/{owner}/{repo}/contents/{filePath}` | HU-14 |
-| `UpdateFile` | PUT | `/v1/repos/{owner}/{repo}/contents/{filePath}` | HU-14 |
-| `DeleteFile` | DELETE | `/v1/repos/{owner}/{repo}/contents/{filePath}` | HU-15 |
-| `CreateFolder` | POST | `/v1/repos/{owner}/{repo}/folders` | HU-17 |
-| `GetRawFile` | GET | `/v1/repos/{owner}/{repo}/raw/{filePath}` | HU-16 |
-| `ListCommits` | GET | `/v1/repos/{owner}/{repo}/commits` | HU-18 |
-| `GetCommit` | GET | `/v1/repos/{owner}/{repo}/commits/{sha}` | HU-18 |
-| `GetCommitDiff` | GET | `/v1/repos/{owner}/{repo}/commits/{sha}/diff` | HU-18 |
-| `CompareCommits` | GET | `/v1/repos/{owner}/{repo}/compare/{baseBranch}...{headBranch}` | HU-20 |
-
-### 5.2 repo.smithy (AGREGAR)
+### 3.2 RepoApi - Operaciones relacionadas (repo.smithy)
 
 | Operación | Método | URI | HU |
 |-----------|--------|-----|-----|
 | `GetBranch` | GET | `/v1/repos/{owner}/{repo}/branches/{branch}` | HU-19 |
 | `ForkRepository` | POST | `/v1/repos/{owner}/{repo}/forks` | HU-09 |
-| `ListForks` | GET | `/v1/repos/{owner}/{repo}/forks` | HU-09 |
-
-### 5.3 repo.smithy (MANTENER)
-
-| Operación | Método | URI |
-|-----------|--------|-----|
-| `DownloadArchive` | GET | `/v1/repos/{owner}/{repo}/archive` |
-| `ListBranches` | GET | `/v1/repos/{owner}/{repo}/branches` |
-| `CreateBranch` | POST | `/v1/repos/{owner}/{repo}/branches` |
-| `DeleteBranch` | DELETE | `/v1/repos/{owner}/{repo}/branches/{branch}` |
-
-### 5.4 repo.smithy (ELIMINAR)
-
-| Operación | Razón |
-|-----------|-------|
-| `GetRepoContents` | Reemplazado por `GetFileContent` en files.smithy |
-| `UploadFile` | Reemplazado por `CreateFile`/`UpdateFile` en files.smithy |
+| `ListRepositoryForks` | GET | `/v1/repos/{owner}/{repo}/forks` | HU-09 |
+| `DownloadArchive` | GET | `/v1/repos/{owner}/{repo}/archive` | HU-16 |
+| `ListBranches` | GET | `/v1/repos/{owner}/{repo}/branches` | HU-19 |
+| `CreateBranch` | POST | `/v1/repos/{owner}/{repo}/branches` | HU-19 |
+| `DeleteBranch` | DELETE | `/v1/repos/{owner}/{repo}/branches/{branch}` | HU-19 |
 
 ---
 
-## 6. Estructuras de Datos
+## 4. Estructuras de Datos
 
-### 6.1 Tipos Comunes (common.smithy - agregar)
+### 4.1 Tipos Comunes (common.smithy)
 
 ```smithy
-// Identidad para autor/committer
+/// Identidad para autor/committer de commits
 structure Identity {
     @required
     name: String
@@ -322,17 +84,31 @@ structure Identity {
     email: Email
 }
 
-// Tipo de contenido Git
+/// Tipo de objeto Git (archivo o directorio)
 enum GitObjectType {
     FILE      = "file"
     DIRECTORY = "dir"
 }
+
+/// Mixin para operaciones con scope de repositorio
+@mixin
+structure RepoScopedInputMixin {
+    @required
+    owner: Username
+
+    @required
+    repo: RepoName
+}
 ```
 
-### 6.2 Archivos (files.smithy)
+### 4.2 Archivos (files.smithy)
 
 ```smithy
-// Contenido de archivo (respuesta GET)
+/// Contenido binario de archivo (máximo 10MB)
+@length(max: 10485760)
+blob FileBytes
+
+/// Contenido de archivo (respuesta GET)
 structure FileContentDTO {
     @required
     name: String
@@ -360,7 +136,7 @@ structure FileContentDTO {
     lastCommitSha: String
 }
 
-// Entrada de directorio
+/// Entrada de directorio
 structure DirectoryEntryDTO {
     @required
     name: String
@@ -379,78 +155,7 @@ structure DirectoryEntryDTO {
     downloadUrl: Url
 }
 
-list DirectoryEntryList {
-    member: DirectoryEntryDTO
-}
-
-// Crear archivo (request)
-structure CreateFileBody {
-    @required
-    content: String
-
-    @required
-    @length(min: 1, max: 500)
-    message: String
-
-    branch: String
-
-    author: Identity
-
-    committer: Identity
-}
-
-// Actualizar archivo (request)
-structure UpdateFileBody {
-    @required
-    sha: String
-
-    @required
-    content: String
-
-    @required
-    @length(min: 1, max: 500)
-    message: String
-
-    branch: String
-
-    fromPath: String
-
-    author: Identity
-
-    committer: Identity
-}
-
-// Eliminar archivo (request)
-structure DeleteFileBody {
-    @required
-    sha: String
-
-    @required
-    @length(min: 1, max: 500)
-    message: String
-
-    branch: String
-
-    author: Identity
-
-    committer: Identity
-}
-
-// Crear carpeta (request)
-structure CreateFolderBody {
-    @required
-    @length(min: 1, max: 255)
-    @pattern("^[a-zA-Z0-9._/-]+$")
-    name: String
-
-    @required
-    @length(min: 1, max: 500)
-    message: String
-
-    branch: String
-}
-
-// Respuesta de operación (create/update/delete)
+/// Respuesta de operación de archivo (create/update)
 structure FileOperationResponse {
     @required
     content: FileContentDTO
@@ -458,12 +163,63 @@ structure FileOperationResponse {
     @required
     commit: CommitSummaryDTO
 }
+
+/// Crear archivo (request body)
+structure CreateFileBody {
+    @required
+    content: FileBytes
+
+    @required
+    @length(min: 1, max: 500)
+    message: String
+
+    branch: String
+
+    author: Identity
+
+    committer: Identity
+}
+
+/// Actualizar archivo (request body)
+structure UpdateFileBody {
+    @required
+    sha: String              // Control de concurrencia
+
+    @required
+    content: FileBytes
+
+    @required
+    @length(min: 1, max: 500)
+    message: String
+
+    branch: String
+
+    fromPath: String         // Para rename/move
+
+    author: Identity
+
+    committer: Identity
+}
+
+/// Crear carpeta (request body)
+structure CreateFolderBody {
+    @required
+    @length(min: 1, max: 255)
+    @pattern("^[a-zA-Z0-9._/-]+$")
+    path: String
+
+    @required
+    @length(min: 1, max: 500)
+    message: String
+
+    branch: String
+}
 ```
 
-### 6.3 Commits (files.smithy)
+### 4.3 Commits (files.smithy)
 
 ```smithy
-// Commit completo
+/// Commit completo
 structure CommitDTO {
     @required
     sha: String
@@ -482,7 +238,7 @@ structure CommitDTO {
     parents: CommitParentList
 }
 
-// Firma de commit
+/// Firma de commit (autor o committer)
 structure CommitSignature {
     @required
     name: String
@@ -494,7 +250,7 @@ structure CommitSignature {
     date: String
 }
 
-// Commit padre
+/// Commit padre
 structure CommitParent {
     @required
     sha: String
@@ -502,15 +258,7 @@ structure CommitParent {
     url: Url
 }
 
-list CommitParentList {
-    member: CommitParent
-}
-
-list CommitList {
-    member: CommitDTO
-}
-
-// Resumen de commit
+/// Resumen de commit (para responses)
 structure CommitSummaryDTO {
     @required
     sha: String
@@ -527,13 +275,13 @@ structure CommitSummaryDTO {
     htmlUrl: Url
 }
 
-// Archivo cambiado
+/// Archivo cambiado en un commit
 structure CommitFile {
     @required
     filename: String
 
     @required
-    status: String
+    status: String           // added, modified, deleted, renamed
 
     additions: Integer
 
@@ -544,11 +292,7 @@ structure CommitFile {
     patch: String
 }
 
-list CommitFileList {
-    member: CommitFile
-}
-
-// Comparación de branches (HU-20)
+/// Comparación entre branches (HU-20)
 structure CompareDTO {
     @required
     commits: CommitList
@@ -567,125 +311,165 @@ structure CompareDTO {
 }
 ```
 
-### 6.4 Branches (repo.smithy - agregar a BranchDTO)
+### 4.4 Forks (repo.smithy)
 
 ```smithy
-// Branch con detalle de commit
-structure BranchDetailDTO {
-    @required
-    name: String
+/// Crear fork (request body)
+structure ForkRepositoryBody {
+    name: RepoName           // Opcional: nombre del fork
 
-    @required
-    isDefault: Boolean
-
-    @required
-    commit: CommitSummaryDTO
-
-    protected: Boolean
-}
-```
-
-### 6.5 Forks (repo.smithy - agregar)
-
-```smithy
-// Crear fork (request)
-structure CreateForkBody {
-    name: RepoName
-}
-
-// Fork info (response)
-structure ForkInfoDTO {
-    @required
-    repository: RepositoryDTO
-
-    @required
-    parent: RepositorySummaryDTO
-}
-
-// Resumen de repositorio (para parent)
-structure RepositorySummaryDTO {
-    @required
-    id: Uuid
-
-    @required
-    name: RepoName
-
-    @required
-    fullName: String
-
-    @required
-    ownerUsername: Username
-}
-
-list ForkList {
-    member: ForkInfoDTO
+    targetOwner: String      // Opcional: owner destino
 }
 ```
 
 ---
 
-## 7. Resumen de Cambios
+## 5. Notas de Implementación
 
-| Archivo | Agregar | Modificar | Eliminar |
-|---------|---------|-----------|----------|
-| `common.smithy` | Identity, GitObjectType | - | - |
-| `files.smithy` | **NUEVO** (10 ops) | - | - |
-| `repo.smithy` | GetBranch, ForkRepository, ListForks, estructuras | - | GetRepoContents, UploadFile |
-| `service.smithy` | 13 nuevas operaciones | - | 2 operaciones |
+### 5.1 Decisiones de Diseño
 
-### Conteo Final
+| Decisión | Razón |
+|----------|-------|
+| `CreateFile` usa PUT | Idempotencia - crear o actualizar por path |
+| `UpdateFile` usa PATCH | Actualización parcial diferenciada de create |
+| `GetRawFile` usa `/download?path=` | Flexibilidad para paths complejos |
+| `CompareCommits` usa `/{base}/{head}` | Smithy no soporta `...` en URIs |
+| `{filePath+}` greedy label | Captura paths con múltiples segmentos |
+| `FileBytes` blob | Contenido binario con límite de 10MB |
+| `RepoScopedInputMixin` | DRY para inputs con owner/repo |
 
-| Categoría | Cantidad |
-|-----------|----------|
-| Operaciones existentes (mantener) | 4 |
-| Operaciones existentes (mejorar) | 1 |
-| Operaciones nuevas | 12 |
-| **TOTAL** | **17** |
+### 5.2 Control de Concurrencia
+
+Las operaciones `UpdateFile` y `DeleteFile` requieren el `sha` actual del archivo para control optimista de concurrencia. Si el sha no coincide, retorna `409 Conflict`.
+
+### 5.3 Parámetros de DeleteFile
+
+```
+DELETE /v1/repos/{owner}/{repo}/contents/{filePath+}?sha={sha}&message={message}&branch={branch}
+```
+
+Los parámetros van en query string (no body) por restricciones HTTP de DELETE.
 
 ---
 
-## 8. Estructura de Archivos
+## 6. Servicios
+
+### 6.1 FilesApi
+
+```smithy
+@title("Mini-GitHub Files API")
+@restJson1
+@httpBearerAuth
+@documentation("Servicio para contenido de archivos, commits, descargas y comparacion de branches.")
+service FilesApi {
+    version: "1.0.0"
+    operations: [
+        GetFileContent
+        GetRepositoryContents
+        CreateFile
+        UpdateFile
+        DeleteFile
+        CreateFolder
+        GetRawFile
+        ListCommits
+        GetCommit
+        GetCommitDiff
+        CompareCommits
+    ]
+}
+```
+
+### 6.2 RepoApi (operaciones relacionadas)
+
+Las operaciones de branches y forks están en `RepoApi` junto con otras operaciones de repositorio.
+
+---
+
+## 7. Estructura de Archivos
 
 ```
 model/
 ├── common/
-│   └── common.smithy       # + Identity, GitObjectType
-├── repo/
-│   └── repo.smithy         # + GetBranch, Fork ops, - GetRepoContents, - UploadFile
+│   └── common.smithy       # Identity, GitObjectType, RepoScopedInputMixin
 ├── files/
-│   └── files.smithy        # NUEVO - Archivos + Commits
+│   └── files.smithy        # FilesApi - 11 operaciones
+├── repo/
+│   └── repo.smithy         # RepoApi - incluye branches y forks
+├── auth/
+│   └── ...                 # AuthPublicApi, AuthAccountApi
 ├── issue/
-│   └── issue.smithy        # Sin cambios
-├── search/
-│   └── search.smithy       # Sin cambios
-└── service.smithy          # + nuevas operaciones
+│   └── issue.smithy        # IssueApi
+└── search/
+    └── search.smithy       # SearchApi
 ```
 
 ---
 
-## 9. Próximos Pasos
+## 8. Generación de OpenAPI
 
-1. [ ] Agregar `Identity`, `GitObjectType` a `common.smithy`
-2. [ ] Crear `model/files/files.smithy` con estructuras y operaciones
-3. [ ] Agregar `GetBranch`, `ForkRepository`, `ListForks` a `repo.smithy`
-4. [ ] Agregar estructuras de Fork a `repo.smithy`
-5. [ ] Eliminar `GetRepoContents`, `UploadFile` de `repo.smithy`
-6. [ ] Mejorar `DeleteFile` en `repo.smithy` (mover a files.smithy)
-7. [ ] Actualizar `service.smithy` con nuevas operaciones
-8. [ ] Ejecutar `./gradlew build` para validar
-9. [ ] Generar OpenAPI con `./gradlew smithyBuild`
+```bash
+./gradlew build
+```
+
+Genera especificaciones OpenAPI separadas por servicio:
+- `build/smithyprojections/mini-github-smithy/openapi-files/` → FilesApi
+- `build/smithyprojections/mini-github-smithy/openapi-repo/` → RepoApi
+
+---
+
+## 9. Ejemplos de Uso
+
+### 9.1 Crear archivo
+
+```http
+PUT /v1/repos/johndoe/my-repo/contents/src/main.py
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "content": "<base64-encoded-content>",
+  "message": "Add main.py",
+  "branch": "main"
+}
+```
+
+### 9.2 Obtener contenido de directorio
+
+```http
+GET /v1/repos/johndoe/my-repo/contents/src?ref=main
+Authorization: Bearer <token>
+```
+
+### 9.3 Comparar branches
+
+```http
+GET /v1/repos/johndoe/my-repo/compare/main/feature-branch
+Authorization: Bearer <token>
+```
+
+### 9.4 Crear fork
+
+```http
+POST /v1/repos/original-owner/repo-name/forks
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "name": "my-fork"
+}
+```
 
 ---
 
 ## Referencias
 
 - [Gitea API Documentation v1.20](https://docs.gitea.com/api/1.20/)
-- [Gitea Go SDK](https://pkg.go.dev/code.gitea.io/sdk/gitea)
 - Historias de Usuario: `C:\Python\github-docs\docs\HistoriasDeUsuario.md`
 - Requisitos Funcionales: `C:\Python\github-docs\docs\RFuncionales.md`
 
 ---
 
-**Última actualización:** 2026-04-04
+**Última actualización:** 2026-04-05
 **Rama:** feat/file-management
-**Operaciones totales:** 17
+**Operaciones FilesApi:** 11
+**Operaciones RepoApi relacionadas:** 7
