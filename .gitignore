@@ -6,12 +6,18 @@ build/
 # IDE
 .idea/
 *.iml
+*.iws
 .vscode/
 *.code-workspace
+.classpath
+.project
+.settings/
+bin/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Smithy build outputs
+# Smithy
+.smithy.lsp.log
 smithyprojections/
