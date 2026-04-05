@@ -80,14 +80,27 @@ swagger-ui-watcher build/smithyprojections/mini-github-smithy/openapi/openapi/Mi
 
 ```bash
 ./gradlew smithyBuild
-./gradlew generateAuthJava
+./gradlew generateAuthCodegen
 ```
 
 Salida esperada:
 - OpenAPI Auth Public: `build/smithyprojections/mini-github-smithy/openapi-auth-public/openapi/AuthPublicApi.openapi.json`
 - OpenAPI Auth Account: `build/smithyprojections/mini-github-smithy/openapi-auth-account/openapi/AuthAccountApi.openapi.json`
-- Cliente Java: `build/generated/openapi/auth-java-client`
-- Server Java (stubs Spring): `build/generated/openapi/auth-java-server`
+- Cliente TypeScript: `build/generated/openapi/authPublic-typescript-client`
+- Server Java (services stubs): `build/generated/openapi/authAccount-java-server`
+
+## Generacion de codigo (todos los dominios)
+
+```bash
+./gradlew smithyBuild
+./gradlew generateAllCodegen
+```
+
+Incluye codegen para `auth`, `repo`, `issue`, `issueComments`, `files` y `search`:
+- Clientes TypeScript: `build/generated/openapi/*-typescript-client`
+- Servers Java con delegates/services: `build/generated/openapi/*-java-server`
+
+Nota: en `repo` y `files` hay rutas Smithy con labels greedy (`{filePath+}`), por lo que OpenAPI Generator muestra warnings de validacion; el flujo de Gradle ya esta configurado con `--skip-validate-spec` para generar codigo correctamente.
 
 ## Autenticación
 

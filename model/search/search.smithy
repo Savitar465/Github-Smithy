@@ -1,6 +1,7 @@
 $version: "2"
 
 namespace com.minigithub.search
+use aws.protocols#restJson1
 use com.minigithub.common#Uuid
 use com.minigithub.common#Username
 use com.minigithub.common#RepoName
@@ -264,3 +265,17 @@ structure SearchIssuesBody {
     @required
     pagination: PaginationMeta
 }
+
+@title("Mini-GitHub Search API")
+@restJson1
+@httpBearerAuth
+@documentation("Servicio de busqueda de repositorios, usuarios e issues.")
+service SearchApi {
+    version: "1.0.0"
+    operations: [
+        SearchRepositories
+        SearchUsers
+        SearchIssues
+    ]
+}
+
