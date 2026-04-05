@@ -1,4 +1,4 @@
-# Mini-GitHub — Proyecto Smithy
+# GitHub — Proyecto Smithy
 
 Modelo de API REST en Smithy 2.0 para el proyecto académico Mini-GitHub.
 
