@@ -57,6 +57,22 @@
           "protocol": "aws.protocols#restJson1"
         }
       }
+    },
+    "openapi-org-public": {
+      "plugins": {
+        "openapi": {
+        "service": "com.minigithub.organization#OrgPublicApi",
+        "protocol": "aws.protocols#restJson1"
+        }
+      }
+    },
+    "openapi-org": {
+      "plugins": {
+        "openapi": {
+          "service": "com.minigithub.organization#OrgApi",
+          "protocol": "aws.protocols#restJson1"
+        }
+      }
     }
   }
 }
