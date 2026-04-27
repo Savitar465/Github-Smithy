@@ -1,13 +1,13 @@
 $version: "2"
 
-namespace com.minigithub.auth
+namespace com.githubx.auth
 
-use com.minigithub.common#BadRequestError
-use com.minigithub.common#InternalServerError
-use com.minigithub.common#NotFoundError
-use com.minigithub.common#UnauthorizedError
-use com.minigithub.common#Url
-use com.minigithub.common#Username
+use com.githubx.common#BadRequestError
+use com.githubx.common#InternalServerError
+use com.githubx.common#NotFoundError
+use com.githubx.common#UnauthorizedError
+use com.githubx.common#Url
+use com.githubx.common#Username
 
 @http(method: "GET", uri: "/v1/auth/me", code: 200)
 @readonly

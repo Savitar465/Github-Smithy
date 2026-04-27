@@ -1,11 +1,17 @@
 {
   "version": "1.0",
   "sources": ["model"],
+  "maven": {
+    "dependencies": [
+      "software.amazon.smithy:smithy-aws-traits:1.47.0",
+      "software.amazon.smithy:smithy-aws-apigateway-traits:1.47.0"
+    ]
+  },
   "projections": {
     "openapi-auth-public": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub.auth#AuthPublicApi",
+          "service": "com.githubx.auth#AuthPublicApi",
           "protocol": "aws.protocols#restJson1"
         }
       }
@@ -13,7 +19,7 @@
     "openapi-auth-account": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub.auth#AuthAccountApi",
+          "service": "com.githubx.auth#AuthAccountApi",
           "protocol": "aws.protocols#restJson1"
         }
       }
@@ -21,7 +27,7 @@
     "openapi-repo": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub.repo#RepoApi",
+          "service": "com.githubx.repo#RepoApi",
           "protocol": "aws.protocols#restJson1"
         }
       }
@@ -29,7 +35,7 @@
     "openapi-issue": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub.issue#IssueApi",
+          "service": "com.githubx.issue#IssueApi",
           "protocol": "aws.protocols#restJson1"
         }
       }
@@ -37,7 +43,15 @@
     "openapi-issue-comments": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub.issue#IssueCommentsApi",
+          "service": "com.githubx.issue#IssueCommentsApi",
+          "protocol": "aws.protocols#restJson1"
+        }
+      }
+    },
+    "openapi-pullrequest": {
+      "plugins": {
+        "openapi": {
+          "service": "com.githubx.pullrequest#PullRequestApi",
           "protocol": "aws.protocols#restJson1"
         }
       }
@@ -45,7 +59,7 @@
     "openapi-files": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub.files#FilesApi",
+          "service": "com.githubx.files#FilesApi",
           "protocol": "aws.protocols#restJson1"
         }
       }
@@ -53,7 +67,7 @@
     "openapi-search": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub.search#SearchApi",
+          "service": "com.githubx.search#SearchApi",
           "protocol": "aws.protocols#restJson1"
         }
       }
@@ -61,7 +75,7 @@
     "openapi-org-public": {
       "plugins": {
         "openapi": {
-        "service": "com.minigithub.organization#OrgPublicApi",
+        "service": "com.githubx.organization#OrgPublicApi",
         "protocol": "aws.protocols#restJson1"
         }
       }
@@ -69,7 +83,7 @@
     "openapi-org": {
       "plugins": {
         "openapi": {
-          "service": "com.minigithub.organization#OrgApi",
+          "service": "com.githubx.organization#OrgApi",
           "protocol": "aws.protocols#restJson1"
         }
       }

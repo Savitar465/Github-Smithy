@@ -1,12 +1,12 @@
 $version: "2"
 
-namespace com.minigithub.organization
+namespace com.githubx.organization
 
-use com.minigithub.common#ConflictError
-use com.minigithub.common#ForbiddenError
-use com.minigithub.common#InternalServerError
-use com.minigithub.common#NotFoundError
-use com.minigithub.common#UnauthorizedError
+use com.githubx.common#ConflictError
+use com.githubx.common#ForbiddenError
+use com.githubx.common#InternalServerError
+use com.githubx.common#NotFoundError
+use com.githubx.common#UnauthorizedError
 
 @http(method: "GET", uri: "/v1/orgs/{orgName}/teams/{teamId}/members", code: 200)
 @readonly

@@ -1,8 +1,8 @@
 $version: "2"
 
-namespace com.minigithub.auth
+namespace com.githubx.auth
 
-use com.minigithub.common#JwtToken
+use com.githubx.common#JwtToken
 
 structure AuthTokenDTO {
     @required

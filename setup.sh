@@ -4,13 +4,13 @@
 # Ejecutar UNA SOLA VEZ después de descomprimir el ZIP
 #
 # Requisitos: Java 17+ y conexión a internet
-# Uso:        cd mini-github-smithy && bash setup.sh
+# Uso:        cd github-smithy && bash setup.sh
 # ─────────────────────────────────────────────────────────────
 
 set -e
 
 echo "╔══════════════════════════════════════════╗"
-echo "║   Mini-GitHub Smithy — Setup inicial     ║"
+echo "║   GitHub Smithy — Setup inicial          ║"
 echo "╚══════════════════════════════════════════╝"
 echo ""
 

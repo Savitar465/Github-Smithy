@@ -30,13 +30,14 @@ sourceSets.main.java.srcDirs = ['model', 'src/main/smithy']
 def smithyProjectionBase = layout.buildDirectory.dir("smithyprojections/${rootProject.name}").get().asFile.absolutePath
 
 def codegenTargets = [
-    [id: "authPublic", projection: "openapi-auth-public", specName: "AuthPublicApi", packageBase: "com.minigithub.generated.auth.publicapi", generateTypeScriptClient: true,  generateJavaServer: true],
-    [id: "authAccount", projection: "openapi-auth-account", specName: "AuthAccountApi", packageBase: "com.minigithub.generated.auth.account",   generateTypeScriptClient: false, generateJavaServer: true],
-    [id: "repo",       projection: "openapi-repo",         specName: "RepoApi",       packageBase: "com.minigithub.generated.repo",           generateTypeScriptClient: true,  generateJavaServer: true],
-    [id: "issue",      projection: "openapi-issue",        specName: "IssueApi",      packageBase: "com.minigithub.generated.issue",          generateTypeScriptClient: true,  generateJavaServer: true],
-    [id: "issueComments", projection: "openapi-issue-comments", specName: "IssueCommentsApi", packageBase: "com.minigithub.generated.issue.comments", generateTypeScriptClient: true,  generateJavaServer: true],
-    [id: "files",      projection: "openapi-files",        specName: "FilesApi",      packageBase: "com.minigithub.generated.files",          generateTypeScriptClient: true,  generateJavaServer: true],
-    [id: "search",     projection: "openapi-search",       specName: "SearchApi",     packageBase: "com.minigithub.generated.search",         generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "authPublic", projection: "openapi-auth-public", specName: "AuthPublicApi", packageBase: "com.githubx.generated.auth.publicapi", generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "authAccount", projection: "openapi-auth-account", specName: "AuthAccountApi", packageBase: "com.githubx.generated.auth.account",   generateTypeScriptClient: false, generateJavaServer: true],
+    [id: "repo",       projection: "openapi-repo",         specName: "RepoApi",       packageBase: "com.githubx.generated.repo",           generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "issue",      projection: "openapi-issue",        specName: "IssueApi",      packageBase: "com.githubx.generated.issue",          generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "issueComments", projection: "openapi-issue-comments", specName: "IssueCommentsApi", packageBase: "com.githubx.generated.issue.comments", generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "pullrequest", projection: "openapi-pullrequest", specName: "PullRequestApi", packageBase: "com.githubx.generated.pullrequest", generateTypeScriptClient: true, generateJavaServer: true],
+    [id: "files",      projection: "openapi-files",        specName: "FilesApi",      packageBase: "com.githubx.generated.files",          generateTypeScriptClient: true,  generateJavaServer: true],
+    [id: "search",     projection: "openapi-search",       specName: "SearchApi",     packageBase: "com.githubx.generated.search",         generateTypeScriptClient: true,  generateJavaServer: true],
 ]
 
 def typeScriptClientTaskNames = []
@@ -60,7 +61,7 @@ codegenTargets.each { target ->
                 "--skip-validate-spec",
                 "-i", specPath,
                 "-o", layout.buildDirectory.dir("generated/openapi/${target.id}-typescript-client").get().asFile.absolutePath,
-                "--additional-properties", "supportsES6=true,typescriptThreePlus=true,withInterfaces=true,useSingleRequestParameter=true,npmName=minigithub-${target.id}-client,npmVersion=1.0.0,hideGenerationTimestamp=true"
+                "--additional-properties", "supportsES6=true,typescriptThreePlus=true,withInterfaces=true,useSingleRequestParameter=true,npmName=github-${target.id}-client,npmVersion=1.0.0,hideGenerationTimestamp=true"
         }
     }
 

@@ -1,6 +1,6 @@
 $version: "2"
 
-namespace com.minigithub.common
+namespace com.githubx.common
 
 // ─── Tipos primitivos ─────────────────────────────────────────
 

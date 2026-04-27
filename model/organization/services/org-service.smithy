@@ -1,11 +1,17 @@
 $version: "2"
 
-namespace com.minigithub.organization
+namespace com.githubx.organization
 
 use aws.protocols#restJson1
+use aws.apigateway#integration
 
-@title("Mini-GitHub Organization Public API")
+@title("GitHub Organization Public API")
 @restJson1
+@integration(
+    type: "http_proxy"
+    uri: "https://example.com/organization/public"
+    httpMethod: "POST"
+)
 @documentation("Operaciones públicas de organización (solo lectura sin token).")
 service OrgPublicApi {
     version: "1.0.0"
@@ -15,9 +21,14 @@ service OrgPublicApi {
     ]
 }
 
-@title("Mini-GitHub Organization API")
+@title("GitHub Organization API")
 @restJson1
 @httpBearerAuth
+@integration(
+    type: "http_proxy"
+    uri: "https://example.com/organization"
+    httpMethod: "POST"
+)
 @documentation("Operaciones de organización protegidas. Requiere token JWT.")
 service OrgApi {
     version: "1.0.0"

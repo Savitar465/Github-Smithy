@@ -1,11 +1,11 @@
 # GitHub — Proyecto Smithy
 
-Modelo de API REST en Smithy 2.0 para el proyecto académico Mini-GitHub.
+Modelo de API REST en Smithy 2.0 para el proyecto académico GitHub.
 
 ## Estructura
 
 ```
-mini-github-smithy/
+github-smithy/
 ├── setup.sh                          ← Ejecutar primero (genera el wrapper)
 ├── build.gradle                      ← Dependencias y plugin Smithy
 ├── settings.gradle                   ← Nombre del proyecto
@@ -22,7 +22,9 @@ mini-github-smithy/
     ├── repo/
     │   └── repo.smithy               ← Repo Service (HU-06 a HU-23)
     ├── issue/
-    │   └── issue.smithy              ← Issue Service + Pull Requests (HU-19-21)
+    │   └── issue.smithy              ← Issue Service (issues, labels y comentarios)
+    ├── pullrequest/
+    │   └── pullrequest.smithy        ← PullRequest Service (HU-19-21)
     └── search/
         └── search.smithy             ← Search Service (RF05)
 ```
@@ -37,7 +39,7 @@ mini-github-smithy/
 ### Paso 1 — Generar el Gradle Wrapper
 
 ```bash
-cd mini-github-smithy
+cd github-smithy
 bash setup.sh
 ```
 
@@ -64,7 +66,7 @@ build/smithy-output/
 Genera el archivo OpenAPI en:
 
 ```
-swagger-ui-watcher build/smithyprojections/mini-github-smithy/openapi/openapi/MiniGitHubApi.openapi.json
+swagger-ui-watcher build/smithyprojections/github-smithy/openapi/openapi/GithubApi.openapi.json
 ```
 
 ## Operaciones por servicio
@@ -73,7 +75,8 @@ swagger-ui-watcher build/smithyprojections/mini-github-smithy/openapi/openapi/Mi
 |---|---|---|
 | Auth Service | 3001 | Register, Login, Logout, RefreshToken, GetMe, UpdateProfile, OAuth x2, ForgotPassword, ResetPassword, GetUserByUsername |
 | Repo Service | 3002 | CRUD repos, Upload/Delete/Get archivos, DownloadArchive, Branches x3, Star/Unstar, Colaboradores x4 |
-| Issue Service | 3003 | CRUD issues, Comentarios x2, Labels x2, Pull Requests x5 |
+| Issue Service | 3003 | CRUD issues, Comentarios x2, Labels x2 |
+| PullRequest Service | 3005 | Pull Requests x5, Comentarios de PR x2, Mergeability |
 | Search Service | 3004 | SearchRepositories, SearchUsers, SearchIssues |
 
 ## Generacion de codigo (Auth)
@@ -84,8 +87,8 @@ swagger-ui-watcher build/smithyprojections/mini-github-smithy/openapi/openapi/Mi
 ```
 
 Salida esperada:
-- OpenAPI Auth Public: `build/smithyprojections/mini-github-smithy/openapi-auth-public/openapi/AuthPublicApi.openapi.json`
-- OpenAPI Auth Account: `build/smithyprojections/mini-github-smithy/openapi-auth-account/openapi/AuthAccountApi.openapi.json`
+- OpenAPI Auth Public: `build/smithyprojections/github-smithy/openapi-auth-public/openapi/AuthPublicApi.openapi.json`
+- OpenAPI Auth Account: `build/smithyprojections/github-smithy/openapi-auth-account/openapi/AuthAccountApi.openapi.json`
 - Cliente TypeScript: `build/generated/openapi/authPublic-typescript-client`
 - Server Java (services stubs): `build/generated/openapi/authAccount-java-server`
 
@@ -96,7 +99,7 @@ Salida esperada:
 ./gradlew generateAllCodegen
 ```
 
-Incluye codegen para `auth`, `repo`, `issue`, `issueComments`, `files` y `search`:
+Incluye codegen para `auth`, `repo`, `issue`, `issueComments`, `pullrequest`, `files` y `search`:
 - Clientes TypeScript: `build/generated/openapi/*-typescript-client`
 - Servers Java con delegates/services: `build/generated/openapi/*-java-server`
 

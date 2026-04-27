@@ -1,11 +1,11 @@
 $version: "2"
 
-namespace com.minigithub.auth
+namespace com.githubx.auth
 
-use com.minigithub.common#Email
-use com.minigithub.common#Url
-use com.minigithub.common#Username
-use com.minigithub.common#Uuid
+use com.githubx.common#Email
+use com.githubx.common#Url
+use com.githubx.common#Username
+use com.githubx.common#Uuid
 
 structure UserDTO {
     @required

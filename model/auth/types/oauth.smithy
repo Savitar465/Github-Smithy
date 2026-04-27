@@ -1,6 +1,6 @@
 $version: "2"
 
-namespace com.minigithub.auth
+namespace com.githubx.auth
 
 enum OAuthProvider {
     GITHUB = "github"

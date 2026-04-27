@@ -1,12 +1,12 @@
 $version: "2"
 
-namespace com.minigithub.auth
+namespace com.githubx.auth
 
-use com.minigithub.common#BadRequestError
-use com.minigithub.common#Email
-use com.minigithub.common#InternalServerError
-use com.minigithub.common#Password
-use com.minigithub.common#UnauthorizedError
+use com.githubx.common#BadRequestError
+use com.githubx.common#Email
+use com.githubx.common#InternalServerError
+use com.githubx.common#Password
+use com.githubx.common#UnauthorizedError
 
 @http(method: "POST", uri: "/v1/auth/forgot-password", code: 202)
 @documentation("Envia email con enlace temporal de recuperacion. RF01.4")

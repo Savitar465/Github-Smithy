@@ -1,6 +1,6 @@
 $version: "2"
 
-namespace com.minigithub.organization
+namespace com.githubx.organization
 
 /// Rol de un miembro dentro de una organización
 enum OrgMemberRole {

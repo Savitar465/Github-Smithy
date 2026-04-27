@@ -1,11 +1,17 @@
 $version: "2"
 
-namespace com.minigithub.auth
+namespace com.githubx.auth
 
 use aws.protocols#restJson1
+use aws.apigateway#integration
 
-@title("Mini-GitHub Auth Public API")
+@title("GitHub Auth Public API")
 @restJson1
+@integration(
+    type: "http_proxy"
+    uri: "https://example.com/auth/public"
+    httpMethod: "POST"
+)
 @documentation("Servicio publico de autenticacion sin token previo.")
 service AuthPublicApi {
     version: "1.0.0"
@@ -19,9 +25,14 @@ service AuthPublicApi {
     ]
 }
 
-@title("Mini-GitHub Auth Account API")
+@title("GitHub Auth Account API")
 @restJson1
 @httpBearerAuth
+@integration(
+    type: "http_proxy"
+    uri: "https://example.com/auth/account"
+    httpMethod: "POST"
+)
 @documentation("Servicio protegido para operaciones de cuenta autenticada.")
 service AuthAccountApi {
     version: "1.0.0"

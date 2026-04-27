@@ -1,10 +1,10 @@
 $version: "2"
 
-namespace com.minigithub.organization
+namespace com.githubx.organization
 
-use com.minigithub.common#RepoName
-use com.minigithub.common#Uuid
-use com.minigithub.common#PaginationMeta
+use com.githubx.common#RepoName
+use com.githubx.common#Uuid
+use com.githubx.common#PaginationMeta
 
 structure OrgRepoSummary {
     @required

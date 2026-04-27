@@ -1,10 +1,10 @@
 $version: "2"
 
-namespace com.minigithub.organization
+namespace com.githubx.organization
 
-use com.minigithub.common#RepoName
-use com.minigithub.common#Username
-use com.minigithub.common#Uuid
+use com.githubx.common#RepoName
+use com.githubx.common#Username
+use com.githubx.common#Uuid
 
 /// Un equipo agrupa miembros y define sus permisos sobre repositorios
 structure TeamDTO {

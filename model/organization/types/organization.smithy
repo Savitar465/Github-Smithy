@@ -1,10 +1,10 @@
 $version: "2"
 
-namespace com.minigithub.organization
+namespace com.githubx.organization
 
-use com.minigithub.common#Url
-use com.minigithub.common#Uuid
-use com.minigithub.common#Username
+use com.githubx.common#Url
+use com.githubx.common#Uuid
+use com.githubx.common#Username
 
 /// Representación pública de una organización
 structure OrganizationDTO {
